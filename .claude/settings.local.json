@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python3 --version 2>&1)",
+      "PowerShell(docker --version 2>&1)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(python3 -m py_compile backend/app/seed.py)",
+      "Bash(python -m py_compile backend/app/seed.py)",
+      "Bash(python -m py_compile backend/app/core/config.py backend/app/seed.py backend/app/main.py)",
+      "Bash(curl -sI \"https://davreestr.uz/public/assets/images/gerb.png\")",
+      "Bash(curl -sI \"https://davreestr.uz/public/assets/images/new-images/building.png\")",
+      "Bash(vercel build *)"
+    ]
+  }
+}

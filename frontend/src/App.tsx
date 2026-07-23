@@ -1,0 +1,94 @@
+import { Route, Routes } from "react-router-dom";
+import { Navbar } from "./components/Navbar";
+import { Footer } from "./components/Footer";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
+import { SearchPage } from "./pages/public/SearchPage";
+import { RecordDetailPage } from "./pages/public/RecordDetailPage";
+
+import { LoginPage } from "./pages/cabinet/LoginPage";
+import { CabinetDashboardPage } from "./pages/cabinet/CabinetDashboardPage";
+import { RecordFormPage } from "./pages/cabinet/RecordFormPage";
+
+import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
+import { RegistryBuilderPage } from "./pages/admin/RegistryBuilderPage";
+import { UsersPage } from "./pages/admin/UsersPage";
+import { AuditLogPage } from "./pages/admin/AuditLogPage";
+
+const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
+const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
+
+export default function App() {
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      <Routes>
+        {/* Ochiq Portal */}
+        <Route path="/" element={<SearchPage />} />
+        <Route path="/record/:recordNumber" element={<RecordDetailPage />} />
+
+        {/* Cabinet Module */}
+        <Route path="/cabinet/login" element={<LoginPage />} />
+        <Route
+          path="/cabinet"
+          element={
+            <ProtectedRoute allowedRoles={[...STAFF_ROLES]}>
+              <CabinetDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cabinet/records/new"
+          element={
+            <ProtectedRoute allowedRoles={[...STAFF_ROLES]}>
+              <RecordFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cabinet/records/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={[...STAFF_ROLES]}>
+              <RecordFormPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Panel (SuperAdmin System) */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/registry-types"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <RegistryBuilderPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      <Footer />
+    </div>
+  );
+}

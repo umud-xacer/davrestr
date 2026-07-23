@@ -1,0 +1,20 @@
+{$DOMAIN} {
+	encode gzip
+
+	# Backend API va statik /docs (Swagger) — /api/ bilan boshlanadigan barcha so'rovlar backendga boradi
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	# Frontend (statik React build, nginx orqali beriladi)
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
