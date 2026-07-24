@@ -2,16 +2,26 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
-import { RegistryRecordOut, RegistryStatus, STATUS_LABELS } from "../../types";
+import { useLanguage } from "../../context/LanguageContext";
+import { RegistryRecordOut, RegistryStatus } from "../../types";
 
 const APPROVER_ROLES = ["cabinet_approver", "org_admin", "superadmin"];
 
 export function CabinetDashboardPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [records, setRecords] = useState<RegistryRecordOut[]>([]);
   const [statusFilter, setStatusFilter] = useState<RegistryStatus | "">("");
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: t("status.draft"),
+    active: t("status.active"),
+    suspended: t("status.suspended"),
+    terminated: t("status.terminated"),
+    violated: t("status.violated"),
+  };
 
   const canApprove = user && APPROVER_ROLES.includes(user.role);
 
@@ -33,7 +43,7 @@ export function CabinetDashboardPage() {
       await apiClient.post(`/cabinet/records/${id}/sign`);
       load();
     } catch (err: any) {
-      setActionError(err.response?.data?.detail || "Xatolik yuz berdi");
+      setActionError(err.response?.data?.detail || t("cabinetDashboard.genericError"));
     }
   };
 
@@ -43,19 +53,19 @@ export function CabinetDashboardPage() {
       await apiClient.post(`/cabinet/records/${id}/status/${newStatus}`);
       load();
     } catch (err: any) {
-      setActionError(err.response?.data?.detail || "Xatolik yuz berdi");
+      setActionError(err.response?.data?.detail || t("cabinetDashboard.genericError"));
     }
   };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold text-slate-800">Idora Kabineti — Reestr yozuvlari</h1>
+        <h1 className="text-xl font-semibold text-slate-800">{t("cabinetDashboard.title")}</h1>
         <Link
           to="/cabinet/records/new"
           className="inline-block rounded-md bg-brand-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-brand-700"
         >
-          + Yangi yozuv kiritish
+          {t("cabinetDashboard.newRecord")}
         </Link>
       </div>
 
@@ -68,7 +78,7 @@ export function CabinetDashboardPage() {
               statusFilter === s ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-600"
             }`}
           >
-            {s === "" ? "Barchasi" : STATUS_LABELS[s]}
+            {s === "" ? t("cabinetDashboard.all") : STATUS_LABELS[s]}
           </button>
         ))}
       </div>
@@ -77,19 +87,19 @@ export function CabinetDashboardPage() {
 
       <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white">
         {loading ? (
-          <p className="p-6 text-center text-slate-500">Yuklanmoqda...</p>
+          <p className="p-6 text-center text-slate-500">{t("cabinetDashboard.loading")}</p>
         ) : records.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">Yozuvlar topilmadi</p>
+          <p className="p-6 text-center text-slate-500">{t("cabinetDashboard.empty")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-slate-50 text-left text-slate-600">
                 <tr>
-                  <th className="p-3">Raqami</th>
-                  <th className="p-3">Subyekt</th>
-                  <th className="p-3">Holati</th>
-                  <th className="p-3">Kanal</th>
-                  <th className="p-3">Amallar</th>
+                  <th className="p-3">{t("cabinetDashboard.colNumber")}</th>
+                  <th className="p-3">{t("cabinetDashboard.colSubject")}</th>
+                  <th className="p-3">{t("cabinetDashboard.colStatus")}</th>
+                  <th className="p-3">{t("cabinetDashboard.colChannel")}</th>
+                  <th className="p-3">{t("cabinetDashboard.colActions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -111,7 +121,7 @@ export function CabinetDashboardPage() {
                           onClick={() => handleSign(r.id)}
                           className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
                         >
-                          E-IMZO bilan tasdiqlash
+                          {t("cabinetDashboard.signBtn")}
                         </button>
                       )}
                       {r.status === "active" && canApprove && (
@@ -120,13 +130,13 @@ export function CabinetDashboardPage() {
                             onClick={() => handleStatusChange(r.id, "suspended")}
                             className="rounded bg-amber-500 px-2 py-1 text-xs text-white hover:bg-amber-600"
                           >
-                            To'xtatish
+                            {t("cabinetDashboard.suspendBtn")}
                           </button>
                           <button
                             onClick={() => handleStatusChange(r.id, "terminated")}
                             className="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600"
                           >
-                            Tugatish
+                            {t("cabinetDashboard.terminateBtn")}
                           </button>
                         </div>
                       )}

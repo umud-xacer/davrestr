@@ -1,16 +1,19 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../api/client";
+import { useLanguage } from "../../context/LanguageContext";
 import { FieldDef, RegistryRecordOut, RegistryTypeOut } from "../../types";
 
 function SimpleField({
   field,
   value,
   onChange,
+  t,
 }: {
   field: FieldDef;
   value: any;
   onChange: (v: any) => void;
+  t: (key: string) => string;
 }) {
   const commonClasses =
     "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none";
@@ -19,14 +22,14 @@ function SimpleField({
     return (
       <label className="mt-1 flex items-center gap-2 text-sm">
         <input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
-        Ha
+        {t("recordForm.yes")}
       </label>
     );
   }
   if (field.type === "select") {
     return (
       <select value={value || ""} onChange={(e) => onChange(e.target.value)} className={commonClasses}>
-        <option value="">Tanlang...</option>
+        <option value="">{t("recordForm.selectPlaceholder")}</option>
         {(field.options || []).map((opt) => (
           <option key={opt} value={opt}>
             {opt}
@@ -50,10 +53,12 @@ function ListField({
   field,
   items,
   onChange,
+  t,
 }: {
   field: FieldDef;
   items: Record<string, any>[];
   onChange: (items: Record<string, any>[]) => void;
+  t: (key: string) => string;
 }) {
   const itemFields = field.item_fields || [];
 
@@ -73,7 +78,7 @@ function ListField({
             {itemFields.map((sf) => (
               <div key={sf.key}>
                 <label className="block text-xs font-medium text-slate-600">{sf.label}</label>
-                <SimpleField field={sf} value={item[sf.key]} onChange={(v) => updateItem(idx, sf.key, v)} />
+                <SimpleField field={sf} value={item[sf.key]} onChange={(v) => updateItem(idx, sf.key, v)} t={t} />
               </div>
             ))}
           </div>
@@ -82,7 +87,7 @@ function ListField({
             onClick={() => removeItem(idx)}
             className="mt-2 text-xs text-red-500 hover:underline"
           >
-            Qatorni o'chirish
+            {t("recordForm.removeRow")}
           </button>
         </div>
       ))}
@@ -91,7 +96,7 @@ function ListField({
         onClick={addItem}
         className="rounded bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200"
       >
-        + {field.label}ga qator qo'shish
+        + {field.label}{t("recordForm.addRow")}
       </button>
     </div>
   );
@@ -101,6 +106,7 @@ export function RecordFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [registryTypes, setRegistryTypes] = useState<RegistryTypeOut[]>([]);
   const [selectedTypeId, setSelectedTypeId] = useState("");
@@ -127,7 +133,7 @@ export function RecordFormPage() {
     }
   }, [isEdit, id]);
 
-  const selectedType = registryTypes.find((t) => t.id === selectedTypeId);
+  const selectedType = registryTypes.find((rt) => rt.id === selectedTypeId);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -151,7 +157,7 @@ export function RecordFormPage() {
       }
       navigate("/cabinet");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "Saqlashda xatolik yuz berdi");
+      setError(err.response?.data?.detail || t("recordForm.saveError"));
     } finally {
       setSaving(false);
     }
@@ -160,13 +166,13 @@ export function RecordFormPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-xl font-semibold text-slate-800">
-        {isEdit ? "Yozuvni tahrirlash" : "Yangi reestr yozuvi kiritish"}
+        {isEdit ? t("recordForm.editTitle") : t("recordForm.newTitle")}
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-lg border border-slate-200 bg-white p-6">
         {!isEdit && (
           <div>
-            <label className="block text-sm font-medium text-slate-700">Reestr turi</label>
+            <label className="block text-sm font-medium text-slate-700">{t("recordForm.registryType")}</label>
             <select
               value={selectedTypeId}
               onChange={(e) => {
@@ -176,10 +182,10 @@ export function RecordFormPage() {
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
               required
             >
-              <option value="">Tanlang...</option>
-              {registryTypes.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+              <option value="">{t("recordForm.selectPlaceholder")}</option>
+              {registryTypes.map((rt) => (
+                <option key={rt.id} value={rt.id}>
+                  {rt.name}
                 </option>
               ))}
             </select>
@@ -188,21 +194,21 @@ export function RecordFormPage() {
 
         <div>
           <label className="block text-sm font-medium text-slate-700">
-            Kadastr/hujjat raqami{" "}
-            <span className="font-normal text-slate-400">(agar mavjud bo'lsa; aks holda avtomatik yaratiladi)</span>
+            {t("recordForm.recordNumber")}{" "}
+            <span className="font-normal text-slate-400">{t("recordForm.recordNumberHint")}</span>
           </label>
           <input
             value={recordNumber}
             onChange={(e) => setRecordNumber(e.target.value)}
             disabled={isEdit}
-            placeholder="masalan: 11:14:04:01:01:1630"
+            placeholder={t("recordForm.recordNumberPlaceholder")}
             className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-400"
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Subyekt F.I.SH / nomi</label>
+            <label className="block text-sm font-medium text-slate-700">{t("recordForm.subjectName")}</label>
             <input
               value={subjectName}
               onChange={(e) => setSubjectName(e.target.value)}
@@ -210,7 +216,7 @@ export function RecordFormPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">PINFL</label>
+            <label className="block text-sm font-medium text-slate-700">{t("recordForm.subjectPinfl")}</label>
             <input
               value={subjectPinfl}
               onChange={(e) => setSubjectPinfl(e.target.value)}
@@ -234,6 +240,7 @@ export function RecordFormPage() {
                       field={field}
                       items={data[field.key] || []}
                       onChange={(items) => setData((prev) => ({ ...prev, [field.key]: items }))}
+                      t={t}
                     />
                   </div>
                 ) : (
@@ -241,6 +248,7 @@ export function RecordFormPage() {
                     field={field}
                     value={data[field.key]}
                     onChange={(v) => setData((prev) => ({ ...prev, [field.key]: v }))}
+                    t={t}
                   />
                 )}
               </div>
@@ -255,11 +263,9 @@ export function RecordFormPage() {
           disabled={saving || (!isEdit && !selectedTypeId)}
           className="w-full rounded-md bg-brand-600 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {saving ? "Saqlanmoqda..." : "Loyiha sifatida saqlash"}
+          {saving ? t("recordForm.saving") : t("recordForm.saveDraft")}
         </button>
-        <p className="text-center text-xs text-slate-400">
-          Saqlangandan so'ng mas'ul shaxs E-IMZO bilan tasdiqlashi kerak, shundagina reestrga e'lon qilinadi.
-        </p>
+        <p className="text-center text-xs text-slate-400">{t("recordForm.footerNote")}</p>
       </form>
     </div>
   );

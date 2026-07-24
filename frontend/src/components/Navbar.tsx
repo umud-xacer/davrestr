@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { ROLE_LABELS } from "../types";
-import { CloseIcon, MenuIcon, RssIcon, SitemapIcon } from "./icons";
-
-const NAV_LINKS = [
-  { label: "Normativ huquqiy hujjatlar", to: "/" },
-  { label: "Savol-javoblar", to: "/" },
-  { label: "Online so'rovnoma", to: "/" },
-  { label: "Yangiliklar", to: "/" },
-  { label: "Murojaat qoldirish", to: "/" },
-];
+import { useLanguage } from "../context/LanguageContext";
+import { CloseIcon, MenuIcon } from "./icons";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { lang, setLang, t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const NAV_LINKS = [
+    { label: t("nav.linkDocs"), to: "/" },
+    { label: t("nav.linkFaq"), to: "/" },
+    { label: t("nav.linkSurvey"), to: "/" },
+    { label: t("nav.linkNews"), to: "/" },
+    { label: t("nav.linkContact"), to: "/" },
+  ];
 
   return (
     <header className="relative bg-white">
@@ -25,9 +26,9 @@ export function Navbar() {
           {!user ? (
             <Link
               to="/cabinet/login"
-              className="text-xs font-medium text-muted hover:text-brand-600 hover:underline"
+              className="rounded-[8px] bg-brand-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
             >
-              Kabinetga kirish
+              {t("nav.login")}
             </Link>
           ) : (
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -36,16 +37,16 @@ export function Navbar() {
                 user.role === "org_admin" ||
                 user.role === "superadmin") && (
                 <Link to="/cabinet" className="text-xs font-medium text-brand-700 hover:underline">
-                  Kabinet
+                  {t("nav.kabinet")}
                 </Link>
               )}
               {(user.role === "org_admin" || user.role === "superadmin") && (
                 <Link to="/admin" className="text-xs font-medium text-brand-700 hover:underline">
-                  Admin panel
+                  {t("nav.adminPanel")}
                 </Link>
               )}
               <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                {user.full_name} · {ROLE_LABELS[user.role]}
+                {user.full_name} · {t(`role.${user.role}`)}
               </span>
               <button
                 onClick={() => {
@@ -54,21 +55,26 @@ export function Navbar() {
                 }}
                 className="text-xs text-muted hover:underline"
               >
-                Chiqish
+                {t("nav.logout")}
               </button>
             </div>
           )}
-          <div className="flex items-center gap-3 text-faint">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-200 text-[10px] font-semibold text-brand-700">
-              A+
-            </span>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-200 text-[10px] font-semibold text-brand-700">
-              A-
-            </span>
-            <RssIcon className="h-4 w-4 cursor-pointer hover:text-brand-600" />
-            <SitemapIcon className="h-4 w-4 cursor-pointer hover:text-brand-600" />
-            <span className="font-semibold text-ink">Uz</span>
-            <span className="cursor-pointer hover:text-brand-600">Ru</span>
+          <div className="flex items-center gap-3">
+            <img src="/images/glass-icon.svg" alt="" className="h-3.5 cursor-pointer opacity-80 hover:opacity-100" />
+            <img src="/images/wifi-icon.svg" alt="RSS" className="h-4 w-4 cursor-pointer opacity-80 hover:opacity-100" />
+            <img src="/images/sitemap-icon.png" alt="" className="h-4 w-4 cursor-pointer opacity-80 hover:opacity-100" />
+            <button
+              onClick={() => setLang("uz")}
+              className={lang === "uz" ? "font-semibold text-ink" : "text-muted hover:text-brand-600"}
+            >
+              Uz
+            </button>
+            <button
+              onClick={() => setLang("ru")}
+              className={lang === "ru" ? "font-semibold text-ink" : "text-muted hover:text-brand-600"}
+            >
+              Ru
+            </button>
           </div>
         </div>
       </div>
@@ -76,13 +82,11 @@ export function Navbar() {
       {/* Logo + nomi */}
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <Link to="/" className="flex min-w-0 items-center gap-3">
-          <img src="/images/gerb.png" alt="O'zbekiston Respublikasi gerbi" className="h-14 w-14 shrink-0 object-contain" />
+          <img src="/images/gerb.png" alt="" className="h-14 w-14 shrink-0 object-contain" />
 
           <div className="min-w-0 max-w-[260px] leading-tight sm:max-w-none">
-            <div className="text-[15px] font-bold text-ink sm:whitespace-normal">
-              Ko'chmas mulk obyektlariga bo'lgan huquqlarning
-            </div>
-            <div className="text-[15px] font-bold text-ink">davlat reyestri</div>
+            <div className="text-[15px] font-bold text-ink sm:whitespace-normal">{t("nav.titleLine1")}</div>
+            <div className="text-[15px] font-bold text-ink">{t("nav.titleLine2")}</div>
           </div>
         </Link>
 

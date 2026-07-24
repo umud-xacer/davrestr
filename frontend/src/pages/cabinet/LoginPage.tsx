@@ -1,9 +1,11 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 export function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +20,7 @@ export function LoginPage() {
       await login(username, password);
       navigate("/cabinet");
     } catch {
-      setError("Login yoki parol noto'g'ri");
+      setError(t("login.error"));
     } finally {
       setLoading(false);
     }
@@ -26,16 +28,12 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="text-center text-xl font-semibold text-slate-800">
-        Idora Kabineti / Admin Panel
-      </h1>
-      <p className="mt-1 text-center text-sm text-slate-500">
-        Hozircha login/parol orqali; keyingi bosqichda OneID (E-GOV) va E-IMZO ulanadi.
-      </p>
+      <h1 className="text-center text-xl font-semibold text-slate-800">{t("login.title")}</h1>
+      <p className="mt-1 text-center text-sm text-slate-500">{t("login.subtitle")}</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-lg border border-slate-200 bg-white p-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Foydalanuvchi nomi</label>
+          <label className="block text-sm font-medium text-slate-700">{t("login.username")}</label>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -44,7 +42,7 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Parol</label>
+          <label className="block text-sm font-medium text-slate-700">{t("login.password")}</label>
           <input
             type="password"
             value={password}
@@ -59,7 +57,7 @@ export function LoginPage() {
           disabled={loading}
           className="w-full rounded-md bg-brand-600 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {loading ? "Kirilmoqda..." : "Kirish"}
+          {loading ? t("login.submitting") : t("login.submit")}
         </button>
       </form>
     </div>

@@ -1,30 +1,41 @@
+import { useLanguage } from "../context/LanguageContext";
 import { FacebookIcon, TelegramIcon } from "./icons";
 
-const QUICK_LINKS = ["Normativ huquqiy hujjatlar", "Savol-javoblar", "Online so'rovnoma", "Yangiliklar", "Murojaat qoldirish"];
-
 export function Footer() {
+  const { t } = useLanguage();
+  const QUICK_LINKS = [t("nav.linkDocs"), t("nav.linkFaq"), t("nav.linkSurvey"), t("nav.linkNews"), t("nav.linkContact")];
+
   return (
     <footer className="mt-16 border-t border-slate-100 bg-white">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-3">
-        <div>
+      <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-slate-100 px-4 py-10 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+        <div className="pb-6 sm:pb-0 sm:pr-6">
           <div className="flex items-center gap-3">
-            <img src="/images/gerb.png" alt="O'zbekiston Respublikasi gerbi" className="h-12 w-12 shrink-0 object-contain" />
+            <img src="/images/gerb.png" alt="" className="h-12 w-12 shrink-0 object-contain" />
             <div className="text-[15px] font-bold leading-tight text-ink">
-              Ko'chmas mulk obyektlariga bo'lgan
+              {t("nav.titleLine1")}
               <br />
-              huquqlarning davlat reyestri
+              {t("nav.titleLine2")}
             </div>
           </div>
-          <p className="mt-4 text-sm text-muted">
-            Oʻzbekiston Respublikasi Urbanizatsiya va uy-joy bozori qoʻmitasi huzuridagi Kadastr
-            agentligi
-          </p>
-          <p className="mt-2 text-sm text-muted">(+998 71) 207-00-03</p>
-          <p className="mt-1 text-sm text-muted">Toshkent, 100097, Chilonzor tumani, Cho'ponota ko'chasi</p>
+          <div className="mt-4 space-y-3 divide-y divide-slate-100">
+            <p className="pb-3 text-sm text-muted">{t("footer.orgName")}</p>
+            <p className="pt-3 text-sm text-muted">{t("footer.system")}</p>
+          </div>
         </div>
 
-        <div>
-          <h3 className="text-sm font-semibold text-ink">Havolalar</h3>
+        <div className="py-6 sm:px-6 sm:py-0">
+          <p className="flex items-center gap-2 border-b border-slate-100 pb-3 text-sm text-muted">
+            <img src="/images/phone-icon.svg" alt="" className="h-[17px] w-[17px]" />
+            (+998 71) 207-00-03
+          </p>
+          <p className="mt-3 flex items-center gap-2 text-sm text-muted">
+            <img src="/images/location-icon.svg" alt="" className="h-[18px] w-4" />
+            {t("footer.address")}
+          </p>
+        </div>
+
+        <div className="py-6 sm:px-6 sm:py-0">
+          <h3 className="text-sm font-semibold text-ink">{t("footer.linksTitle")}</h3>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {QUICK_LINKS.map((l) => (
               <li key={l} className="cursor-pointer hover:text-brand-700">
@@ -34,18 +45,24 @@ export function Footer() {
           </ul>
         </div>
 
-        <div>
-          <h3 className="text-sm font-semibold text-ink">Biz ijtimoiy tarmoqlarda</h3>
-          <div className="mt-3 flex gap-3 text-faint">
+        <div className="pt-6 sm:pl-6 sm:pt-0">
+          <h3 className="text-sm font-semibold text-ink">{t("footer.socialTitle")}</h3>
+          <div className="mt-3 flex items-center gap-3 text-faint">
             <TelegramIcon className="h-5 w-5 cursor-pointer hover:text-brand-600" />
             <FacebookIcon className="h-5 w-5 cursor-pointer hover:text-brand-600" />
           </div>
+          {/* Dekorativ statistika belgisi — hech qanday tashqi kuzatuv xizmatiga ulanmaydi */}
+          <div className="mt-3 flex h-[26px] w-fit overflow-hidden rounded text-[9px] font-bold leading-none text-white">
+            <div className="flex w-6 items-center justify-center bg-[#F5A623]">38</div>
+            <div className="flex flex-col items-center justify-center gap-[1px] bg-[#0063AF] px-1.5 py-1">
+              <span>530709</span>
+              <span>1690</span>
+              <span>4283</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="border-t border-slate-100 py-4 text-center text-xs text-faint">
-        © 2021-2026 Oʻzbekiston Respublikasi Urbanizatsiya va uy-joy bozori qoʻmitasi huzuridagi
-        Kadastr agentligi. Barcha huquqlar himoyalangan.
-      </div>
+      <div className="border-t border-slate-100 py-4 text-center text-xs text-faint">{t("footer.copyright")}</div>
     </footer>
   );
 }

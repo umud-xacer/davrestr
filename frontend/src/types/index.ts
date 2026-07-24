@@ -90,12 +90,6 @@ export interface ContentItemOut extends PublicContentItemOut {
   updated_at: string;
 }
 
-export const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
-  news: "Yangilik",
-  service: "Xizmat",
-  announcement: "E'lon",
-};
-
 export interface AuditLogOut {
   id: string;
   actor_username: string | null;
@@ -113,19 +107,3 @@ export interface OrganizationOut {
   code: string;
   is_active: boolean;
 }
-
-export const STATUS_LABELS: Record<RegistryStatus, string> = {
-  draft: "Loyiha",
-  active: "Faol",
-  suspended: "To'xtatilgan",
-  terminated: "Tugatilgan",
-  violated: "Muxlat buzilgan",
-};
-
-export const ROLE_LABELS: Record<Role, string> = {
-  citizen: "Fuqaro",
-  cabinet_employee: "Idora xodimi",
-  cabinet_approver: "Mas'ul shaxs (tasdiqlovchi)",
-  org_admin: "Tashkilot administratori",
-  superadmin: "SuperAdministrator",
-};

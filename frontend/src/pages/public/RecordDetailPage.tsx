@@ -1,41 +1,51 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiClient } from "../../api/client";
-import { FieldDef, PublicRecordOut, STATUS_LABELS } from "../../types";
-
-function formatValue(field: FieldDef, value: any): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (field.type === "boolean") return value ? "Ha" : "Yo'q";
-  if (field.type === "number") return Number(value).toLocaleString("uz-UZ");
-  return String(value);
-}
-
-const RESTRICTION_COLUMNS: { key: string; label: string }[] = [
-  { key: "raqami", label: "Taqiq/cheklov raqami" },
-  { key: "turi", label: "Taqiq/cheklov turi" },
-  { key: "kim_tomonidan", label: "Kim tomonidan" },
-  { key: "sana", label: "Sana" },
-  { key: "ijro_raqami", label: "Ijro xujjatining raqami" },
-  { key: "almashuv_kodi", label: "Ma'lumot almashuv orqali qo'yilganligi (almashuv kodi)" },
-];
+import { useLanguage } from "../../context/LanguageContext";
+import { FieldDef, PublicRecordOut } from "../../types";
 
 export function RecordDetailPage() {
   const { recordNumber } = useParams<{ recordNumber: string }>();
+  const { lang, t } = useLanguage();
   const [record, setRecord] = useState<PublicRecordOut | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: t("status.draft"),
+    active: t("status.active"),
+    suspended: t("status.suspended"),
+    terminated: t("status.terminated"),
+    violated: t("status.violated"),
+  };
+
+  const RESTRICTION_COLUMNS: { key: string; label: string }[] = [
+    { key: "raqami", label: t("record.restrictionNumber") },
+    { key: "turi", label: t("record.restrictionType") },
+    { key: "kim_tomonidan", label: t("record.restrictionBy") },
+    { key: "sana", label: t("record.restrictionDate") },
+    { key: "ijro_raqami", label: t("record.restrictionExecNumber") },
+    { key: "almashuv_kodi", label: t("record.restrictionExchangeCode") },
+  ];
+
+  function formatValue(field: FieldDef, value: any): string {
+    if (value === null || value === undefined || value === "") return "—";
+    if (field.type === "boolean") return value ? t("record.yes") : t("record.no");
+    if (field.type === "number") return Number(value).toLocaleString(lang === "ru" ? "ru-RU" : "uz-UZ");
+    return String(value);
+  }
 
   useEffect(() => {
     apiClient
       .get<PublicRecordOut>(`/public/records/${recordNumber}`)
       .then(({ data }) => setRecord(data))
-      .catch(() => setError("Yozuv topilmadi yoki hali e'lon qilinmagan"));
+      .catch(() => setError(t("record.notFound")));
   }, [recordNumber]);
 
   if (error) {
     return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-red-600">{error}</div>;
   }
   if (!record) {
-    return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-slate-500">Yuklanmoqda...</div>;
+    return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-slate-500">{t("record.loading")}</div>;
   }
 
   const simpleFields = record.field_defs.filter((f) => f.type !== "list");
@@ -48,8 +58,7 @@ export function RecordDetailPage() {
       {manzil && <p className="mt-1 text-center text-brand-600">{manzil}</p>}
 
       <p className="mt-4 rounded-lg bg-slate-100 p-3 text-center text-sm italic text-slate-600">
-        Agar siz ushbu obyekt mulkdori bo'lsangiz, rasmiy ma'lumotnoma (elektron raqamli imzo bilan
-        tasdiqlangan) olish uchun shaxsiy kabinet orqali buyurtma berishingiz mumkin.
+        {t("record.notice")}
       </p>
 
       <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
@@ -68,12 +77,14 @@ export function RecordDetailPage() {
               const items: Record<string, any>[] = record.data[f.key] || [];
               return (
                 <tr key="cheklov-summary" className="bg-slate-50">
-                  <td className="p-3 font-medium text-slate-600">Obyektga nisbatan {f.label.toLowerCase()}:</td>
+                  <td className="p-3 font-medium text-slate-600">
+                    {t("record.restrictionsFor")} {f.label.toLowerCase()}:
+                  </td>
                   <td className="p-3 text-right">
                     {items.length > 0 ? (
-                      <span className="font-semibold text-orange-600">Mavjud</span>
+                      <span className="font-semibold text-orange-600">{t("record.exists")}</span>
                     ) : (
-                      <span className="text-slate-400">Mavjud emas</span>
+                      <span className="text-slate-400">{t("record.notExists")}</span>
                     )}
                   </td>
                 </tr>
@@ -81,13 +92,15 @@ export function RecordDetailPage() {
             })}
 
             <tr className={simpleFields.length % 2 === 0 ? "" : "bg-slate-50"}>
-              <td className="p-3 font-medium text-slate-600">Holati</td>
+              <td className="p-3 font-medium text-slate-600">{t("record.status")}</td>
               <td className="p-3 text-right">{STATUS_LABELS[record.status]}</td>
             </tr>
             <tr className="bg-slate-50">
-              <td className="p-3 font-medium text-slate-600">E'lon qilingan sana</td>
+              <td className="p-3 font-medium text-slate-600">{t("record.publishedDate")}</td>
               <td className="p-3 text-right">
-                {record.published_at ? new Date(record.published_at).toLocaleDateString("uz-UZ") : "—"}
+                {record.published_at
+                  ? new Date(record.published_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "uz-UZ")
+                  : "—"}
               </td>
             </tr>
           </tbody>
@@ -126,8 +139,8 @@ export function RecordDetailPage() {
       })}
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Tekshirish kodi: {record.verify_code} — bu ko'chirmaning haqiqiyligini{" "}
-        <span className="underline">/verify</span> orqali tekshirishingiz mumkin.
+        {t("record.verifyCode")}: {record.verify_code} — {t("record.verifyHint")}{" "}
+        <span className="underline">/verify</span> {t("record.verifyHintSuffix")}
       </p>
     </div>
   );
