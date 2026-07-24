@@ -14,6 +14,7 @@ import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { RegistryBuilderPage } from "./pages/admin/RegistryBuilderPage";
 import { UsersPage } from "./pages/admin/UsersPage";
 import { AuditLogPage } from "./pages/admin/AuditLogPage";
+import { ContentPage } from "./pages/admin/ContentPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
 const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
@@ -84,6 +85,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
               <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/content"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <ContentPage />
             </ProtectedRoute>
           }
         />

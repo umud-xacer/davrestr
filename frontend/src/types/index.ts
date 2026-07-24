@@ -68,6 +68,34 @@ export interface CaptchaOut {
   image_base64: string;
 }
 
+export interface RevealCodeOut {
+  token: string;
+  code: string;
+}
+
+export type ContentType = "news" | "service" | "announcement";
+
+export interface PublicContentItemOut {
+  id: string;
+  type: ContentType;
+  title: string;
+  description: string | null;
+  published_at: string | null;
+}
+
+export interface ContentItemOut extends PublicContentItemOut {
+  is_published: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+  news: "Yangilik",
+  service: "Xizmat",
+  announcement: "E'lon",
+};
+
 export interface AuditLogOut {
   id: string;
   actor_username: string | null;

@@ -3,15 +3,19 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from datetime import datetime, timezone
+
 from app.api.deps import require_roles
 from app.core.database import get_db
 from app.core.rbac import ADMIN_ROLES, Role
 from app.core.security import hash_password
 from app.models.audit import AuditLog
+from app.models.content import ContentItem
 from app.models.organization import Organization
 from app.models.registry import RegistryType
 from app.models.user import User
 from app.schemas.audit import AuditLogOut
+from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate
 from app.schemas.registry import RegistryTypeCreate, RegistryTypeOut
 from app.schemas.user import OrganizationCreate, OrganizationOut, UserCreate, UserUpdate
 from app.schemas.auth import UserOut
@@ -207,3 +211,101 @@ def list_audit_logs(
     if entity_type:
         query = query.filter(AuditLog.entity_type == entity_type)
     return query.order_by(AuditLog.created_at.desc()).limit(min(limit, 500)).all()
+
+
+# ---------- Sayt kontenti (yangiliklar / xizmatlar / e'lonlar CMS) ----------
+
+@router.get("/content", response_model=list[ContentItemOut])
+def list_content(
+    content_type: str | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    query = db.query(ContentItem)
+    if content_type:
+        query = query.filter(ContentItem.type == content_type)
+    return query.order_by(ContentItem.type, ContentItem.sort_order, ContentItem.created_at.desc()).all()
+
+
+@router.post("/content", response_model=ContentItemOut, status_code=201)
+def create_content(
+    payload: ContentItemCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    item = ContentItem(
+        id=uuid.uuid4(),
+        type=payload.type,
+        title=payload.title,
+        description=payload.description,
+        is_published=payload.is_published,
+        sort_order=payload.sort_order,
+        created_by_id=user.id,
+        published_at=datetime.now(timezone.utc) if payload.is_published else None,
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+
+    log_action(
+        db, actor=user, action="content.create", entity_type="content_item",
+        entity_id=str(item.id), ip_address=request.client.host if request.client else None,
+        details={"type": payload.type},
+    )
+    return item
+
+
+@router.patch("/content/{content_id}", response_model=ContentItemOut)
+def update_content(
+    content_id: uuid.UUID,
+    payload: ContentItemUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    item = db.get(ContentItem, content_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Kontent topilmadi")
+
+    if payload.title is not None:
+        item.title = payload.title
+    if payload.description is not None:
+        item.description = payload.description
+    if payload.sort_order is not None:
+        item.sort_order = payload.sort_order
+    if payload.is_published is not None:
+        item.is_published = payload.is_published
+        if payload.is_published and not item.published_at:
+            item.published_at = datetime.now(timezone.utc)
+        elif not payload.is_published:
+            item.published_at = None
+
+    db.commit()
+    db.refresh(item)
+
+    log_action(
+        db, actor=user, action="content.update", entity_type="content_item",
+        entity_id=str(item.id), ip_address=request.client.host if request.client else None,
+    )
+    return item
+
+
+@router.delete("/content/{content_id}", status_code=204)
+def delete_content(
+    content_id: uuid.UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    item = db.get(ContentItem, content_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Kontent topilmadi")
+
+    db.delete(item)
+    db.commit()
+
+    log_action(
+        db, actor=user, action="content.delete", entity_type="content_item",
+        entity_id=str(content_id), ip_address=request.client.host if request.client else None,
+    )

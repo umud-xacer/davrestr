@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.rate_limit import rate_limiter
+from app.models.content import ContentItem
 from app.models.registry import RegistryRecord, RegistryType
-from app.schemas.registry import CaptchaOut, FieldDef, PublicRecordOut
-from app.services.captcha_service import generate_captcha, verify_captcha
+from app.schemas.content import PublicContentItemOut
+from app.schemas.registry import CaptchaOut, FieldDef, PublicRecordOut, RevealCodeOut
+from app.services.captcha_service import generate_captcha, generate_reveal_code, verify_captcha
 from app.services.record_service import extract_public_data
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -35,6 +37,21 @@ def _to_public_record_out(record: RegistryRecord) -> PublicRecordOut:
 @router.get("/captcha", response_model=CaptchaOut)
 def get_captcha():
     return generate_captcha()
+
+
+@router.get(
+    "/reveal-code",
+    response_model=RevealCodeOut,
+    dependencies=[Depends(rate_limiter(max_requests=20, window_seconds=60))],
+)
+def get_reveal_code():
+    """Kadastr qidiruv natijasini ko'rsatishdan oldingi tasdiqlash bosqichi uchun kod.
+
+    Kod ochiq matn holida qaytariladi (frontend uni ekranda ko'rsatadi), lekin token HMAC bilan
+    imzolangan va 180 soniyadan keyin muddati tugaydi — foydalanuvchi shu kodni /public/search
+    so'rovida captcha_answer sifatida qayta yuborishi shart, aks holda natija ko'rsatilmaydi.
+    """
+    return generate_reveal_code()
 
 
 @router.get(
@@ -90,6 +107,21 @@ def get_public_record(record_number: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Yozuv topilmadi yoki hali e'lon qilinmagan")
 
     return _to_public_record_out(record)
+
+
+@router.get("/content", response_model=list[PublicContentItemOut])
+def list_public_content(
+    type: str = Query(..., description="news | service | announcement"),
+    db: Session = Depends(get_db),
+):
+    """Bosh sahifadagi yangiliklar/xizmatlar/e'lonlar — admin panelda boshqariladi."""
+    records = (
+        db.query(ContentItem)
+        .filter(ContentItem.type == type, ContentItem.is_published.is_(True))
+        .order_by(ContentItem.sort_order, ContentItem.published_at.desc())
+        .all()
+    )
+    return records
 
 
 @router.get("/verify/{verify_code}")

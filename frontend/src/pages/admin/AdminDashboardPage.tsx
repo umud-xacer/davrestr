@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 const CARDS = [
   { to: "/admin/registry-types", title: "Reestr strukturasi konstruktori", desc: "Dynamic Form Builder — yangi reestr turlarini yaratish" },
+  { to: "/admin/content", title: "Sayt kontenti", desc: "Yangiliklar, elektron xizmatlar va e'lonlarni qo'shish/tahrirlash" },
   { to: "/admin/users", title: "Foydalanuvchilar va huquqlar", desc: "Xodimlar, mas'ul shaxslar, tashkilotlar bo'yicha boshqaruv" },
   { to: "/admin/audit-logs", title: "Audit jurnali", desc: "Tizimdagi barcha muhim amallar tarixi" },
 ];

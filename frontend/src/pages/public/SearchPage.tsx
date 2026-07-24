@@ -1,88 +1,14 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../api/client";
-import { CaptchaBox } from "../../components/CaptchaBox";
-import { BuildingIcon, CheckCircleIcon, FacebookIcon, SearchIcon, TelegramIcon } from "../../components/icons";
-import { PublicRecordOut, STATUS_LABELS } from "../../types";
+import { BuildingIcon, CheckCircleIcon, FacebookIcon, RefreshIcon, SearchIcon, TelegramIcon } from "../../components/icons";
+import { PublicContentItemOut, PublicRecordOut, RevealCodeOut, STATUS_LABELS } from "../../types";
 
 const SEARCH_TYPES = [
   "Kadastr raqami bo'yicha",
   "STIR bo'yicha",
   "PINFL bo'yicha",
   "Kalit so'z bo'yicha",
-];
-
-const SERVICES = [
-  {
-    title: "Ulush kiritish asosida ishtirok etish shartnomasini davlat ro'yhatidan o'tkazish",
-    desc: "Ulush kiritish asosida ishtirok etish shartnomasini davlat ro'yhatidan o'tkazish",
-  },
-  {
-    title: "Obyektning eski kadastr raqamini kiritish orqali yangi kadastr raqamini aniqlash",
-    desc: "Obyektning eski kadastr raqamini kiritish orqali yangi kadastr raqamini aniqlash",
-  },
-  {
-    title: "Ariza va shikoyatlarni ko'rib chiqish xizmati",
-    desc: "Ariza va shikoyatlarni ko'rib chiqish xizmati",
-  },
-  {
-    title: "Kadastr obyektiga taqiqni tekshirish",
-    desc: "Kadastr obyektiga taqiqni tekshirish",
-  },
-  {
-    title: "Ko'p yillik dov-daraxtlarga kadastr pasporti",
-    desc: "Ko'p yillik dov-daraxtlarga kadastr pasportini shakllantirish va ularga bo'lgan huquqlarni davlat ro'yxatidan o'tkazish",
-  },
-  {
-    title: "Ko'chmas mulk ma'lumotlarini tahrirlash uchun ariza berish",
-    desc: "Ko'chmas mulk ma'lumotlarini tahrirlash uchun ariza berish",
-  },
-  {
-    title: "Bino va inshootlarni ijara shartnomasini davlat ro'yxatidan o'tkazish",
-    desc: "Bino va inshootlarni ijara shartnomasini davlat ro'yxatidan o'tkazish",
-  },
-  {
-    title: "Bino va inshootlarning mansubligi va tarkibi to'g'risida ma'lumotnoma berish",
-    desc: "Bino va inshootlarning mansubligi va tarkibi to'g'risida ma'lumotnoma berish",
-  },
-  {
-    title: "Ko'chmas mulk tarixi haqida ma'lumot olish",
-    desc: "Ko'chmas mulk tarixi haqida ma'lumot olish",
-  },
-  {
-    title: "Davlat kadastr reyestridan ko'chmas mulk bo'yicha ko'chirmani tekshirish",
-    desc: "Davlat kadastr reyestridan ko'chmas mulk bo'yicha ko'chirmani tekshirish",
-  },
-  {
-    title: "Shaxsiy uy-joyi to'g'risida ma'lumotnoma",
-    desc: "Fuqarolarning nomida shaxsiy uy-joyi borligi yoki yo'qligi to'g'risidagi ma'lumotnoma olish",
-  },
-  {
-    title: "Qurilish-montaj ishlari tugallangan obyektdan foydalanish uchun ruxsatnoma berish",
-    desc: "Qurilish-montaj ishlari tugallangan obyektdan foydalanish uchun ruxsatnoma berish va kadastr hujjatlarini rasmiylashtirish",
-  },
-  {
-    title: "Noturar obyektlarini kadastr pasportini shakllantirish",
-    desc: "Noturar obyektlarini kadastr pasportini shakllantirish va ularga bo'lgan huquqni davlat ro'yxatidan o'tkazish",
-  },
-  {
-    title: "Turar-joy obyektlariga bo'lgan huquqlarni davlat ro'yxatidan o'tkazishga ariza yuborish",
-    desc: "Turar-joy obyektlariga bo'lgan huquqlarni davlat ro'yxatidan o'tkazishga ariza yuborish",
-  },
-  {
-    title: "Turar-joy obyektlarini kadastr pasportini shakllantirish",
-    desc: "Turar-joy obyektlarini kadastr pasportini shakllantirish",
-  },
-  {
-    title: "Servitutni ro'yxatdan o'tkazish",
-    desc: "O'zganing yer uchastkasidan cheklangan tarzda foydalanish huquqi (servitut) to'g'risida kelishuvni ro'yhatdan o'tkazish",
-  },
-];
-
-const NEWS = [
-  { date: "2026-07-23 10:42", title: "Andijon viloyatida xatlov jarayonlari yakunlandi" },
-  { date: "2026-07-22 11:01", title: "O'zbekiston Respublikasi qonun hujjatlariga oid yangiliklar" },
-  { date: "2026-07-17 17:54", title: "Rejali profilaktika ishlari" },
 ];
 
 const STEPS = [
@@ -92,43 +18,94 @@ const STEPS = [
   { title: "Ma'lumotnoma olish", desc: "Onlayn rejimda ekranda aks etadi" },
 ];
 
+type Step = "query" | "confirm" | "results";
+
 export function SearchPage() {
+  const [step, setStep] = useState<Step>("query");
   const [searchType, setSearchType] = useState(SEARCH_TYPES[0]);
   const [query, setQuery] = useState("");
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaAnswer, setCaptchaAnswer] = useState("");
+
+  const [reveal, setReveal] = useState<RevealCodeOut | null>(null);
+  const [confirmAnswer, setConfirmAnswer] = useState("");
+
   const [results, setResults] = useState<PublicRecordOut[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (e: FormEvent) => {
+  const [services, setServices] = useState<PublicContentItemOut[]>([]);
+  const [news, setNews] = useState<PublicContentItemOut[]>([]);
+
+  useEffect(() => {
+    apiClient
+      .get<PublicContentItemOut[]>("/public/content", { params: { type: "service" } })
+      .then(({ data }) => setServices(data))
+      .catch(() => {});
+    apiClient
+      .get<PublicContentItemOut[]>("/public/content", { params: { type: "news" } })
+      .then(({ data }) => setNews(data))
+      .catch(() => {});
+  }, []);
+
+  const fetchRevealCode = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const { data } = await apiClient.get<RevealCodeOut>("/public/reveal-code");
+      setReveal(data);
+      setConfirmAnswer("");
+    } catch {
+      setError("Tasdiqlash kodini olishda xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinue = async (e: FormEvent) => {
     e.preventDefault();
     if (query.trim().length < 3) {
       setError("Kamida 3 ta belgi kiriting");
       return;
     }
-    if (!captchaAnswer || captchaAnswer.length < 4) {
-      setError("Rasmdagi kodni to'liq kiriting");
+    setError(null);
+    await fetchRevealCode();
+    setStep("confirm");
+  };
+
+  const handleConfirm = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reveal) return;
+    if (confirmAnswer.trim().length < 4) {
+      setError("Yuqorida ko'rsatilgan kodni to'liq kiriting");
       return;
     }
     setError(null);
     setLoading(true);
     try {
       const { data } = await apiClient.get<PublicRecordOut[]>("/public/search", {
-        params: { q: query.trim(), captcha_token: captchaToken, captcha_answer: captchaAnswer },
+        params: { q: query.trim(), captcha_token: reveal.token, captcha_answer: confirmAnswer.trim() },
       });
       setResults(data);
+      setStep("results");
     } catch (err: any) {
       if (err.response?.status === 429) {
         setError("Juda ko'p so'rov yubordingiz. Birozdan so'ng qayta urinib ko'ring.");
       } else if (err.response?.status === 400) {
-        setError(err.response?.data?.detail || "Captcha kodi noto'g'ri");
+        setError(err.response?.data?.detail || "Kod noto'g'ri yoki muddati o'tgan. Qayta urinib ko'ring.");
       } else {
         setError("Qidiruvda xatolik yuz berdi");
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetSearch = () => {
+    setStep("query");
+    setQuery("");
+    setReveal(null);
+    setConfirmAnswer("");
+    setResults(null);
+    setError(null);
   };
 
   return (
@@ -158,42 +135,103 @@ export function SearchPage() {
       {/* Search card (hero ustiga chiqib turadi) */}
       <div className="mx-auto -mt-10 max-w-5xl px-4 sm:-mt-16">
         <div className="rounded-xl bg-white p-4 shadow-lg ring-1 ring-slate-100 sm:p-5">
-          <div className="mb-3 flex flex-wrap gap-1 rounded-lg bg-[#f8f8f8] p-1 text-sm">
-            {SEARCH_TYPES.map((t) => (
+          {step === "query" && (
+            <>
+              <div className="mb-3 flex flex-wrap gap-1 rounded-lg bg-[#f8f8f8] p-1 text-sm">
+                {SEARCH_TYPES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setSearchType(t)}
+                    className={`rounded-md px-3 py-2 font-medium transition ${
+                      searchType === t ? "bg-white text-brand-600 shadow-sm" : "text-muted hover:text-ink"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <form onSubmit={handleContinue} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Kadastr raqamini kiriting (namuna: 11:14:04:01:01:1630)"
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-4 py-3 text-sm focus:border-brand-500 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex h-11 items-center justify-center gap-2 rounded-md bg-brand-600 px-5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                >
+                  <SearchIcon className="h-4 w-4" />
+                  {loading ? "Yuklanmoqda..." : "Davom etish"}
+                </button>
+              </form>
+            </>
+          )}
+
+          {step === "confirm" && (
+            <div>
+              <p className="text-sm text-muted">
+                Xavfsizlik maqsadida, natijani ko'rish uchun quyidagi kodni tasdiqlang:
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="rounded-md bg-[#f8f8f8] px-6 py-3 text-2xl font-bold tracking-[0.4em] text-ink">
+                  {reveal?.code ?? "----"}
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchRevealCode}
+                  title="Kodni yangilash"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200"
+                >
+                  <RefreshIcon className="h-4 w-4" />
+                </button>
+              </div>
+              <form onSubmit={handleConfirm} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  value={confirmAnswer}
+                  onChange={(e) => setConfirmAnswer(e.target.value)}
+                  placeholder="Kodni shu yerga kiriting"
+                  maxLength={4}
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-4 py-3 text-sm tracking-widest focus:border-brand-500 focus:outline-none sm:max-w-[180px]"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex h-11 items-center justify-center gap-2 rounded-md bg-brand-600 px-5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                >
+                  {loading ? "Tekshirilmoqda..." : "Tasdiqlash va ko'rish"}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetSearch}
+                  className="text-sm text-muted hover:text-ink sm:ml-2"
+                >
+                  Orqaga
+                </button>
+              </form>
+            </div>
+          )}
+
+          {step === "results" && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted">Qidiruv so'rovi</p>
+                <p className="font-medium text-ink">{query}</p>
+              </div>
               <button
-                key={t}
-                type="button"
-                onClick={() => setSearchType(t)}
-                className={`rounded-md px-3 py-2 font-medium transition ${
-                  searchType === t ? "bg-white text-brand-600 shadow-sm" : "text-muted hover:text-ink"
-                }`}
+                onClick={resetSearch}
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-ink hover:bg-slate-200"
               >
-                {t}
+                Yangi qidiruv
               </button>
-            ))}
-          </div>
-          <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Kadastr raqamini kiriting (namuna: 11:14:04:01:01:1630)"
-              className="min-w-0 flex-1 rounded-md border border-slate-300 px-4 py-3 text-sm focus:border-brand-500 focus:outline-none"
-            />
-            <CaptchaBox onChange={(token, answer) => { setCaptchaToken(token); setCaptchaAnswer(answer); }} />
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-brand-600 px-4 text-white hover:bg-brand-700 disabled:opacity-50 sm:w-11 sm:px-0"
-              title="Qidirish"
-            >
-              <SearchIcon className="h-4 w-4" />
-              <span className="sm:hidden">{loading ? "Qidirilmoqda..." : "Qidirish"}</span>
-            </button>
-          </form>
+            </div>
+          )}
         </div>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-        {results !== null && (
+        {step === "results" && results !== null && (
           <div className="mt-4">
             {results.length === 0 ? (
               <p className="rounded-lg bg-white p-6 text-center text-slate-500 shadow-sm">
@@ -226,13 +264,13 @@ export function SearchPage() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-center text-[26px] font-bold text-ink sm:text-[30px]">Elektron xizmatlar</h2>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((s) => (
-            <div key={s.title} className="rounded-xl border border-slate-200 bg-white p-5">
+          {services.map((s) => (
+            <div key={s.id} className="rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                 <BuildingIcon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-sm font-semibold uppercase text-ink">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted">{s.desc}</p>
+              {s.description && <p className="mt-2 text-sm text-muted">{s.description}</p>}
             </div>
           ))}
         </div>
@@ -247,7 +285,7 @@ export function SearchPage() {
           <p className="mt-3 max-w-2xl text-sm text-muted">
             Davlat reyestridan mavjud ko'chirmani yuklab olish uchun mulkdor o'zining shaxsiy kabineti
             orqali bosh sahifada joylashgan qidiruv paneliga ko'chmas mulk ob'ektining kadastr raqamini
-            kiritadi, so'ngra rasmda paydo bo'lgan kodni kiritib, izlash tugmasi bosiladi.
+            kiritadi, so'ngra paydo bo'lgan tasdiqlash kodini kiritib, natijani ko'radi.
           </p>
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
             {STEPS.map((s) => (
@@ -271,13 +309,16 @@ export function SearchPage() {
           So'nggi yangiliklar
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {NEWS.map((n) => (
-            <div key={n.title} className="rounded-xl border border-slate-200 bg-white p-5">
+          {news.map((n) => (
+            <div key={n.id} className="rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex h-32 items-center justify-center rounded-lg bg-brand-50 text-brand-200">
                 <BuildingIcon className="h-8 w-8" />
               </div>
-              <p className="mt-4 text-xs text-faint">{n.date}</p>
+              {n.published_at && (
+                <p className="mt-4 text-xs text-faint">{new Date(n.published_at).toLocaleString("uz-UZ")}</p>
+              )}
               <h3 className="mt-1 text-sm font-semibold text-ink">{n.title}</h3>
+              {n.description && <p className="mt-1 text-sm text-muted">{n.description}</p>}
             </div>
           ))}
         </div>

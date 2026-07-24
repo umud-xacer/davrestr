@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from app.core.database import SessionLocal
 from app.core.rbac import Role
 from app.core.security import hash_password
+from app.models.content import ContentItem, ContentType
 from app.models.organization import Organization
 from app.models.registry import RegistryRecord, RegistryType
 from app.models.user import User
@@ -56,6 +57,37 @@ FIELD_SCHEMA = [
 # qilingan qaror; shaxsiy ma'lumot (subject_name/subject_pinfl) hech qachon
 # public javobga chiqmaydi (PublicRecordOut'da umuman yo'q).
 PUBLIC_FIELDS = [f["key"] for f in FIELD_SCHEMA]
+
+# Bosh sahifadagi "Elektron xizmatlar" bo'limi uchun boshlang'ich kontent (davreestr.uz'dagi
+# xizmatlar ro'yxatiga mos). Admin panel (/admin/content) orqali keyinchalik tahrirlanadi.
+SEED_SERVICES = [
+    "Ulush kiritish asosida ishtirok etish shartnomasini davlat ro'yhatidan o'tkazish",
+    "Obyektning eski kadastr raqamini kiritish orqali yangi kadastr raqamini aniqlash",
+    "Ariza va shikoyatlarni ko'rib chiqish xizmati",
+    "Kadastr obyektiga taqiqni tekshirish",
+    "Ko'p yillik dov-daraxtlarga kadastr pasporti",
+    "Ko'chmas mulk ma'lumotlarini tahrirlash uchun ariza berish",
+    "Bino va inshootlarni ijara shartnomasini davlat ro'yxatidan o'tkazish",
+    "Bino va inshootlarning mansubligi va tarkibi to'g'risida ma'lumotnoma berish",
+    "Ko'chmas mulk tarixi haqida ma'lumot olish",
+    "Davlat kadastr reyestridan ko'chmas mulk bo'yicha ko'chirmani tekshirish",
+    "Shaxsiy uy-joyi to'g'risida ma'lumotnoma",
+    "Qurilish-montaj ishlari tugallangan obyektdan foydalanish uchun ruxsatnoma berish",
+    "Noturar obyektlarini kadastr pasportini shakllantirish",
+    "Turar-joy obyektlariga bo'lgan huquqlarni davlat ro'yxatidan o'tkazishga ariza yuborish",
+    "Turar-joy obyektlarini kadastr pasportini shakllantirish",
+    "Servitutni ro'yxatdan o'tkazish",
+]
+
+SEED_NEWS = [
+    ("Andijon viloyatida xatlov jarayonlari yakunlandi", "Rejalashtirilgan xatlov ishlari doirasida hudud bo'yicha ma'lumotlar yangilandi."),
+    ("O'zbekiston Respublikasi qonun hujjatlariga oid yangiliklar", "Ko'chmas mulk reyestri sohasidagi qonunchilikka kiritilgan so'nggi o'zgarishlar."),
+    ("Rejali profilaktika ishlari", "Tizimda rejalashtirilgan texnik profilaktika ishlari o'tkazildi."),
+]
+
+SEED_ANNOUNCEMENTS = [
+    ("Ariza qabul qilish tartibi o'zgardi", "Elektron xizmatlar orqali ariza topshirish tartibi bilan tanishib chiqishingizni so'raymiz."),
+]
 
 
 def run(skip_demo_record: bool = False, admin_password: str | None = None):
@@ -117,6 +149,27 @@ def run(skip_demo_record: bool = False, admin_password: str | None = None):
             db.commit()
             db.refresh(registry_type)
             print(f"Reestr turi yaratildi: {registry_type.name}")
+
+        superadmin = created_users["superadmin"]
+        if not db.query(ContentItem).count():
+            now = datetime.now(timezone.utc)
+            for i, title in enumerate(SEED_SERVICES):
+                db.add(ContentItem(
+                    id=uuid.uuid4(), type=ContentType.SERVICE, title=title, description=title,
+                    is_published=True, sort_order=i, created_by_id=superadmin.id, published_at=now,
+                ))
+            for i, (title, desc) in enumerate(SEED_NEWS):
+                db.add(ContentItem(
+                    id=uuid.uuid4(), type=ContentType.NEWS, title=title, description=desc,
+                    is_published=True, sort_order=i, created_by_id=superadmin.id, published_at=now,
+                ))
+            for i, (title, desc) in enumerate(SEED_ANNOUNCEMENTS):
+                db.add(ContentItem(
+                    id=uuid.uuid4(), type=ContentType.ANNOUNCEMENT, title=title, description=desc,
+                    is_published=True, sort_order=i, created_by_id=superadmin.id, published_at=now,
+                ))
+            db.commit()
+            print(f"Boshlang'ich kontent yaratildi: {len(SEED_SERVICES)} xizmat, {len(SEED_NEWS)} yangilik, {len(SEED_ANNOUNCEMENTS)} e'lon.")
 
         if skip_demo_record:
             print("Fake demo yozuv o'tkazib yuborildi (--production rejimi).")
