@@ -141,8 +141,8 @@ export const translations = {
       subjectPinfl: "PINFL",
       saveError: "Saqlashda xatolik yuz berdi",
       saving: "Saqlanmoqda...",
-      saveDraft: "Loyiha sifatida saqlash",
-      footerNote: "Saqlangandan so'ng mas'ul shaxs E-IMZO bilan tasdiqlashi kerak, shundagina reestrga e'lon qilinadi.",
+      saveDraft: "Saqlash va ko'rib chiqishga yuborish",
+      footerNote: "Saqlangandan so'ng mas'ul shaxs uni ko'rib chiqadi, to'lov bosqichlaridan o'tkazadi va E-IMZO bilan tasdiqlaydi — shundagina reestrga e'lon qilinadi.",
     },
     adminDashboard: {
       title: "SuperAdmin Panel",
@@ -418,8 +418,8 @@ export const translations = {
       subjectPinfl: "ПИНФЛ",
       saveError: "Ошибка при сохранении",
       saving: "Сохранение...",
-      saveDraft: "Сохранить как черновик",
-      footerNote: "После сохранения ответственное лицо должно подтвердить запись через E-IMZO, только тогда она будет опубликована в реестре.",
+      saveDraft: "Сохранить и отправить на рассмотрение",
+      footerNote: "После сохранения ответственное лицо рассмотрит запись, проведёт через этапы оплаты и подтвердит через E-IMZO — только тогда она будет опубликована в реестре.",
     },
     adminDashboard: {
       title: "Панель СуперАдмина",
