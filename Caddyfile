@@ -1,5 +1,25 @@
-{$DOMAIN} {
+
+# Cloudflare "Flexible" SSL rejimida ishlaydi — tashrif buyuruvchiga har doim
+# https beradi, lekin origin (bu server) bilan oddiy http orqali gaplashadi.
+# Shu sabab manzilni FAQAT domen sifatida yozsak, Caddy avtomatik http->https
+# redirect qo'shadi va cheksiz siklga olib keladi (Cloudflare origin'ga
+# qayta-qayta http yuboraveradi). Shuning uchun http:// ham, https:// ham
+# ANIQ ko'rsatilgan — ikkalasida ham bir xil kontent beriladi, redirect yo'q;
+# https'ni tashrif buyuruvchiga Cloudflare o'zi (edge'da "Always Use HTTPS"
+# bilan) ta'minlaydi, sertifikat boshqaruvi esa (443-port uchun) yoqilgan qoladi.
+http://{$DOMAIN}, https://{$DOMAIN} {
 	encode gzip
+
+	# So'rovlar tarixi — fail2ban shu faylni kuzatib, brute-force/skanerlash qiluvchi
+	# IP-manzillarni avtomatik bloklaydi (server ichidagi /var/log/caddy hostdagi
+	# ./caddy-logs papkasiga bog'langan, docker-compose.prod.yml'da).
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		format json
+	}
 
 	# Backend API va statik /docs (Swagger) — /api/ bilan boshlanadigan barcha so'rovlar backendga boradi
 	handle /api/* {
