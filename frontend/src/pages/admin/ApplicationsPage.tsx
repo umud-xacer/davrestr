@@ -4,7 +4,6 @@ import { useLanguage } from "../../context/LanguageContext";
 import { ApplicationOut, ApplicationStatus } from "../../types";
 
 const STATUS_FLOW: ApplicationStatus[] = [
-  "submitted",
   "under_review",
   "payment_pending",
   "paid",

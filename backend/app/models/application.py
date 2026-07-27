@@ -13,15 +13,14 @@ from app.core.database import Base
 class ApplicationStatus(str, enum.Enum):
     """Fuqaro arizasining hayotiy sikli.
 
-    submitted        - fuqaro tomonidan yuborildi, hali ko'rib chiqilmagan
-    under_review      - admin ko'rib chiqmoqda
+    under_review      - fuqaro tomonidan yuborildi, admin ko'rib chiqmoqda (boshlang'ich holat)
     payment_pending    - davlat boji/xizmat haqi to'lovi kutilmoqda
     paid             - to'lov amalga oshirildi
     approved          - ariza tasdiqlandi, xizmat ko'rsatildi
     rejected          - ariza rad etildi
     """
 
-    SUBMITTED = "submitted"
+    SUBMITTED = "submitted"  # eski holat, endi ishlatilmaydi (orqaga qarab moslik uchun saqlangan)
     UNDER_REVIEW = "under_review"
     PAYMENT_PENDING = "payment_pending"
     PAID = "paid"
@@ -47,7 +46,7 @@ class Application(Base):
 
     status: Mapped[ApplicationStatus] = mapped_column(
         SAEnum(ApplicationStatus, name="application_status"),
-        default=ApplicationStatus.SUBMITTED,
+        default=ApplicationStatus.UNDER_REVIEW,
         nullable=False,
         index=True,
     )
