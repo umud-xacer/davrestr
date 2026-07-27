@@ -55,7 +55,7 @@ export function RecordDetailPage() {
   const manzil = record.data.manzil;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-[974px] px-4 py-10">
       <h1 className="text-center text-[25px] font-normal text-muted">{record.record_number}</h1>
       {manzil && <p className="mt-1 text-center text-[17px] text-[#6699F2]">{manzil}</p>}
 
