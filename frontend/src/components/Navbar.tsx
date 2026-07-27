@@ -40,14 +40,6 @@ export function Navbar() {
                   {t("nav.kabinet")}
                 </Link>
               )}
-              {(user.role === "org_admin" || user.role === "superadmin") && (
-                <Link to="/admin" className="text-xs font-medium text-brand-700 hover:underline">
-                  {t("nav.adminPanel")}
-                </Link>
-              )}
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                {user.full_name} · {t(`role.${user.role}`)}
-              </span>
               <button
                 onClick={() => {
                   logout();
