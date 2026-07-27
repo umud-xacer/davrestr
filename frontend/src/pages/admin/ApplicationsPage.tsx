@@ -63,6 +63,12 @@ export function ApplicationsPage() {
     return STATUS_FLOW[idx + 1];
   };
 
+  const prevStatus = (current: ApplicationStatus): ApplicationStatus | null => {
+    const idx = STATUS_FLOW.indexOf(current);
+    if (idx <= 0) return null;
+    return STATUS_FLOW[idx - 1];
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-xl font-semibold text-slate-800">{t("adminApplications.title")}</h1>
@@ -104,6 +110,7 @@ export function ApplicationsPage() {
               <tbody className="divide-y divide-slate-100">
                 {items.map((a) => {
                   const next = nextStatus(a.status);
+                  const prev = prevStatus(a.status);
                   return (
                     <tr key={a.id}>
                       <td className="p-3 font-medium text-slate-800">{a.service_title}</td>
@@ -123,6 +130,14 @@ export function ApplicationsPage() {
                                 className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
                               >
                                 {STATUS_LABELS[next]}
+                              </button>
+                            )}
+                            {prev && (
+                              <button
+                                onClick={() => changeStatus(a.id, prev)}
+                                className="rounded bg-amber-500 px-2 py-1 text-xs text-white hover:bg-amber-600"
+                              >
+                                {t("adminApplications.backBtn")}
                               </button>
                             )}
                             <button

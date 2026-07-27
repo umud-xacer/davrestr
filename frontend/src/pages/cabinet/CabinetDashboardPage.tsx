@@ -118,31 +118,67 @@ export function CabinetDashboardPage() {
                     <td className="p-3 text-xs text-slate-500">{r.source_channel}</td>
                     <td className="p-3">
                       {r.status === "draft" && canApprove && (
-                        <button
-                          onClick={() => handleStatusChange(r.id, "payment_pending")}
-                          className="rounded bg-sky-600 px-2 py-1 text-xs text-white hover:bg-sky-700"
-                        >
-                          {t("cabinetDashboard.moveToPaymentBtn")}
-                        </button>
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            onClick={() => handleStatusChange(r.id, "payment_pending")}
+                            className="rounded bg-sky-600 px-2 py-1 text-xs text-white hover:bg-sky-700"
+                          >
+                            {t("cabinetDashboard.moveToPaymentBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "terminated")}
+                            className="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                          >
+                            {t("cabinetDashboard.terminateBtn")}
+                          </button>
+                        </div>
                       )}
                       {r.status === "payment_pending" && canApprove && (
-                        <button
-                          onClick={() => handleStatusChange(r.id, "paid")}
-                          className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700"
-                        >
-                          {t("cabinetDashboard.markPaidBtn")}
-                        </button>
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            onClick={() => handleStatusChange(r.id, "paid")}
+                            className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700"
+                          >
+                            {t("cabinetDashboard.markPaidBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "draft")}
+                            className="rounded bg-amber-500 px-2 py-1 text-xs text-white hover:bg-amber-600"
+                          >
+                            {t("cabinetDashboard.backBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "terminated")}
+                            className="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                          >
+                            {t("cabinetDashboard.terminateBtn")}
+                          </button>
+                        </div>
                       )}
                       {r.status === "paid" && canApprove && (
-                        <button
-                          onClick={() => handleSign(r.id)}
-                          className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
-                        >
-                          {t("cabinetDashboard.signBtn")}
-                        </button>
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            onClick={() => handleSign(r.id)}
+                            className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
+                          >
+                            {t("cabinetDashboard.signBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "payment_pending")}
+                            className="rounded bg-amber-500 px-2 py-1 text-xs text-white hover:bg-amber-600"
+                          >
+                            {t("cabinetDashboard.backBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "terminated")}
+                            className="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                          >
+                            {t("cabinetDashboard.terminateBtn")}
+                          </button>
+                        </div>
                       )}
                       {r.status === "active" && canApprove && (
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap gap-1">
                           <button
                             onClick={() => handleStatusChange(r.id, "suspended")}
                             className="rounded bg-amber-500 px-2 py-1 text-xs text-white hover:bg-amber-600"
@@ -158,12 +194,20 @@ export function CabinetDashboardPage() {
                         </div>
                       )}
                       {r.status === "suspended" && canApprove && (
-                        <button
-                          onClick={() => handleStatusChange(r.id, "active")}
-                          className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
-                        >
-                          {t("cabinetDashboard.activateBtn")}
-                        </button>
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            onClick={() => handleStatusChange(r.id, "active")}
+                            className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
+                          >
+                            {t("cabinetDashboard.activateBtn")}
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(r.id, "terminated")}
+                            className="rounded bg-slate-500 px-2 py-1 text-xs text-white hover:bg-slate-600"
+                          >
+                            {t("cabinetDashboard.terminateBtn")}
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

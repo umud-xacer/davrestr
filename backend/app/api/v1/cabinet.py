@@ -19,10 +19,14 @@ router = APIRouter(prefix="/cabinet", tags=["cabinet"])
 # tasdiqlanadi). "active"ga birinchi marta o'tish faqat /sign orqali (E-IMZO bilan) amalga oshadi —
 # shu jadvalda yo'q, chunki imzo va published_at qo'yilishi kerak. "suspended"dan "active"ga esa
 # qayta faollashtirish sifatida to'g'ridan-to'g'ri ruxsat etilgan.
+#
+# Har bir oraliq bosqichda uchta yo'nalish bor: oldinga (keyingi bosqich), orqaga (xatolik
+# tuzatish uchun avvalgi bosqichga qaytarish) va tugatish (noqonuniy/bekor qilingan holatda
+# jarayonni to'xtatish).
 ALLOWED_STATUS_TRANSITIONS: dict[RegistryStatus, set[RegistryStatus]] = {
-    RegistryStatus.DRAFT: {RegistryStatus.PAYMENT_PENDING},
-    RegistryStatus.PAYMENT_PENDING: {RegistryStatus.PAID},
-    RegistryStatus.PAID: set(),
+    RegistryStatus.DRAFT: {RegistryStatus.PAYMENT_PENDING, RegistryStatus.TERMINATED},
+    RegistryStatus.PAYMENT_PENDING: {RegistryStatus.PAID, RegistryStatus.DRAFT, RegistryStatus.TERMINATED},
+    RegistryStatus.PAID: {RegistryStatus.PAYMENT_PENDING, RegistryStatus.TERMINATED},
     RegistryStatus.ACTIVE: {RegistryStatus.SUSPENDED, RegistryStatus.TERMINATED},
     RegistryStatus.SUSPENDED: {RegistryStatus.ACTIVE, RegistryStatus.TERMINATED},
     RegistryStatus.TERMINATED: set(),

@@ -125,6 +125,7 @@ export const translations = {
       moveToPaymentBtn: "To'lovga yuborish",
       markPaidBtn: "To'lov qabul qilindi",
       activateBtn: "Faollashtirish",
+      backBtn: "Orqaga qaytarish",
     },
     recordForm: {
       yes: "Ha",
@@ -270,6 +271,7 @@ export const translations = {
       colStatus: "Holati",
       colActions: "Amallar",
       rejectBtn: "Rad etish",
+      backBtn: "Orqaga qaytarish",
     },
     protectedRoute: {
       loading: "Yuklanmoqda...",
@@ -402,6 +404,7 @@ export const translations = {
       moveToPaymentBtn: "Отправить на оплату",
       markPaidBtn: "Оплата получена",
       activateBtn: "Активировать",
+      backBtn: "Вернуть назад",
     },
     recordForm: {
       yes: "Да",
@@ -547,6 +550,7 @@ export const translations = {
       colStatus: "Статус",
       colActions: "Действия",
       rejectBtn: "Отклонить",
+      backBtn: "Вернуть назад",
     },
     protectedRoute: {
       loading: "Загрузка...",
