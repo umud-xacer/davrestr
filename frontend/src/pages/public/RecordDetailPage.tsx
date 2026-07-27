@@ -56,50 +56,48 @@ export function RecordDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-center text-2xl font-semibold text-slate-800">{record.record_number}</h1>
-      {manzil && <p className="mt-1 text-center text-brand-600">{manzil}</p>}
+      <h1 className="text-center text-[25px] font-normal text-muted">{record.record_number}</h1>
+      {manzil && <p className="mt-1 text-center text-[17px] text-[#6699F2]">{manzil}</p>}
 
-      <p className="mt-4 rounded-lg bg-slate-100 p-3 text-center text-sm italic text-slate-600">
-        {t("record.notice")}
-      </p>
+      <p className="mt-4 text-center text-[16px] italic text-[#676767]">{t("record.notice")}</p>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
-        <table className="w-full text-sm">
+      <div className="mt-6 overflow-hidden rounded-lg bg-brand-50">
+        <table className="w-full text-[15px]">
           <tbody>
             {simpleFields
               .filter((f) => f.key !== "manzil")
-              .map((f, idx) => (
-                <tr key={f.key} className={idx % 2 === 0 ? "" : "bg-slate-50"}>
-                  <td className="p-3 font-medium text-slate-600">{f.label}:</td>
-                  <td className="p-3 text-right">{formatValue(f, record.data[f.key])}</td>
+              .map((f) => (
+                <tr key={f.key}>
+                  <td className="px-[35px] py-[9px] font-bold text-black">{f.label}:</td>
+                  <td className="px-[35px] py-[9px] text-right text-black">{formatValue(f, record.data[f.key])}</td>
                 </tr>
               ))}
 
             {listFields.map((f) => {
               const items: Record<string, any>[] = record.data[f.key] || [];
               return (
-                <tr key="cheklov-summary" className="bg-slate-50">
-                  <td className="p-3 font-medium text-slate-600">
+                <tr key="cheklov-summary">
+                  <td className="px-[35px] py-[9px] font-bold text-black">
                     {t("record.restrictionsFor")} {f.label.toLowerCase()}:
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="px-[35px] py-[9px] text-right">
                     {items.length > 0 ? (
-                      <span className="font-semibold text-orange-600">{t("record.exists")}</span>
+                      <span className="text-[#FF5722]">{t("record.exists")}</span>
                     ) : (
-                      <span className="text-slate-400">{t("record.notExists")}</span>
+                      <span className="text-black">{t("record.notExists")}</span>
                     )}
                   </td>
                 </tr>
               );
             })}
 
-            <tr className={simpleFields.length % 2 === 0 ? "" : "bg-slate-50"}>
-              <td className="p-3 font-medium text-slate-600">{t("record.status")}</td>
-              <td className="p-3 text-right">{STATUS_LABELS[record.status]}</td>
+            <tr>
+              <td className="px-[35px] py-[9px] font-bold text-black">{t("record.status")}</td>
+              <td className="px-[35px] py-[9px] text-right text-black">{STATUS_LABELS[record.status]}</td>
             </tr>
-            <tr className="bg-slate-50">
-              <td className="p-3 font-medium text-slate-600">{t("record.publishedDate")}</td>
-              <td className="p-3 text-right">
+            <tr>
+              <td className="px-[35px] py-[9px] font-bold text-black">{t("record.publishedDate")}</td>
+              <td className="px-[35px] py-[9px] text-right text-black">
                 {record.published_at
                   ? new Date(record.published_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "uz-UZ")
                   : "—"}
