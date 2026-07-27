@@ -1,7 +1,9 @@
 export const translations = {
   uz: {
     status: {
-      draft: "Loyiha",
+      draft: "Ariza ko'rib chiqilmoqda",
+      payment_pending: "To'lov jarayonida",
+      paid: "To'lov amalga oshirildi",
       active: "Faol",
       suspended: "To'xtatilgan",
       terminated: "Tugatilgan",
@@ -120,6 +122,9 @@ export const translations = {
       signBtn: "E-IMZO bilan tasdiqlash",
       suspendBtn: "To'xtatish",
       terminateBtn: "Tugatish",
+      moveToPaymentBtn: "To'lovga yuborish",
+      markPaidBtn: "To'lov qabul qilindi",
+      activateBtn: "Faollashtirish",
     },
     recordForm: {
       yes: "Ha",
@@ -273,7 +278,9 @@ export const translations = {
   },
   ru: {
     status: {
-      draft: "Черновик",
+      draft: "Заявка рассматривается",
+      payment_pending: "В процессе оплаты",
+      paid: "Оплата произведена",
       active: "Активный",
       suspended: "Приостановлен",
       terminated: "Прекращён",
@@ -392,6 +399,9 @@ export const translations = {
       signBtn: "Подтвердить через E-IMZO",
       suspendBtn: "Приостановить",
       terminateBtn: "Прекратить",
+      moveToPaymentBtn: "Отправить на оплату",
+      markPaidBtn: "Оплата получена",
+      activateBtn: "Активировать",
     },
     recordForm: {
       yes: "Да",

@@ -12,6 +12,8 @@ export function RecordDetailPage() {
 
   const STATUS_LABELS: Record<string, string> = {
     draft: t("status.draft"),
+    payment_pending: t("status.payment_pending"),
+    paid: t("status.paid"),
     active: t("status.active"),
     suspended: t("status.suspended"),
     terminated: t("status.terminated"),

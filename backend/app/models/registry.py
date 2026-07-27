@@ -10,11 +10,26 @@ from app.core.database import Base
 
 
 class RegistryStatus(str, enum.Enum):
-    DRAFT = "draft"  # xodim tomonidan yaratilgan, hali tasdiqlanmagan
-    ACTIVE = "active"  # Faol
-    SUSPENDED = "suspended"  # To'xtatilgan
-    TERMINATED = "terminated"  # Tugatilgan
-    VIOLATED = "violated"  # Muxlat buzilgan
+    """Reestr yozuvining hayotiy sikli:
+
+    draft -> payment_pending -> paid -> (imzolash) -> active -> {suspended <-> active, terminated}
+
+    draft            - xodim tomonidan yaratilgan, ariza ko'rib chiqilmoqda
+    payment_pending   - ko'rib chiqildi, davlat boji/xizmat haqi to'lovi kutilmoqda
+    paid             - to'lov amalga oshirildi, imzolashga tayyor
+    active            - imzolangan va e'lon qilingan, Faol
+    suspended         - To'xtatilgan (keyin qayta Faol qilish mumkin)
+    terminated        - Tugatilgan (yakuniy holat)
+    violated          - Muxlat buzilgan
+    """
+
+    DRAFT = "draft"
+    PAYMENT_PENDING = "payment_pending"
+    PAID = "paid"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    TERMINATED = "terminated"
+    VIOLATED = "violated"
 
 
 class RegistryType(Base):

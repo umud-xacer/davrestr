@@ -17,10 +17,11 @@ export function CabinetDashboardPage() {
 
   const STATUS_LABELS: Record<string, string> = {
     draft: t("status.draft"),
+    payment_pending: t("status.payment_pending"),
+    paid: t("status.paid"),
     active: t("status.active"),
     suspended: t("status.suspended"),
     terminated: t("status.terminated"),
-    violated: t("status.violated"),
   };
 
   const canApprove = user && APPROVER_ROLES.includes(user.role);
@@ -70,7 +71,7 @@ export function CabinetDashboardPage() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {(["", "draft", "active", "suspended", "terminated", "violated"] as const).map((s) => (
+        {(["", "draft", "payment_pending", "paid", "active", "suspended", "terminated"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -118,6 +119,22 @@ export function CabinetDashboardPage() {
                     <td className="p-3">
                       {r.status === "draft" && canApprove && (
                         <button
+                          onClick={() => handleStatusChange(r.id, "payment_pending")}
+                          className="rounded bg-sky-600 px-2 py-1 text-xs text-white hover:bg-sky-700"
+                        >
+                          {t("cabinetDashboard.moveToPaymentBtn")}
+                        </button>
+                      )}
+                      {r.status === "payment_pending" && canApprove && (
+                        <button
+                          onClick={() => handleStatusChange(r.id, "paid")}
+                          className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700"
+                        >
+                          {t("cabinetDashboard.markPaidBtn")}
+                        </button>
+                      )}
+                      {r.status === "paid" && canApprove && (
+                        <button
                           onClick={() => handleSign(r.id)}
                           className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
                         >
@@ -139,6 +156,14 @@ export function CabinetDashboardPage() {
                             {t("cabinetDashboard.terminateBtn")}
                           </button>
                         </div>
+                      )}
+                      {r.status === "suspended" && canApprove && (
+                        <button
+                          onClick={() => handleStatusChange(r.id, "active")}
+                          className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
+                        >
+                          {t("cabinetDashboard.activateBtn")}
+                        </button>
                       )}
                     </td>
                   </tr>

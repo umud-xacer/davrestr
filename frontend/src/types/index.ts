@@ -35,7 +35,7 @@ export interface RegistryTypeOut {
   is_active: boolean;
 }
 
-export type RegistryStatus = "draft" | "active" | "suspended" | "terminated" | "violated";
+export type RegistryStatus = "draft" | "payment_pending" | "paid" | "active" | "suspended" | "terminated" | "violated";
 
 export interface RegistryRecordOut {
   id: string;

@@ -15,6 +15,20 @@ from app.services.record_service import compute_signature_hash, generate_record_
 
 router = APIRouter(prefix="/cabinet", tags=["cabinet"])
 
+# Reestr yozuvi holatlari o'rtasida ruxsat etilgan o'tishlar (admin/approver tomonidan ketma-ket
+# tasdiqlanadi). "active"ga birinchi marta o'tish faqat /sign orqali (E-IMZO bilan) amalga oshadi —
+# shu jadvalda yo'q, chunki imzo va published_at qo'yilishi kerak. "suspended"dan "active"ga esa
+# qayta faollashtirish sifatida to'g'ridan-to'g'ri ruxsat etilgan.
+ALLOWED_STATUS_TRANSITIONS: dict[RegistryStatus, set[RegistryStatus]] = {
+    RegistryStatus.DRAFT: {RegistryStatus.PAYMENT_PENDING},
+    RegistryStatus.PAYMENT_PENDING: {RegistryStatus.PAID},
+    RegistryStatus.PAID: set(),
+    RegistryStatus.ACTIVE: {RegistryStatus.SUSPENDED, RegistryStatus.TERMINATED},
+    RegistryStatus.SUSPENDED: {RegistryStatus.ACTIVE, RegistryStatus.TERMINATED},
+    RegistryStatus.TERMINATED: set(),
+    RegistryStatus.VIOLATED: set(),
+}
+
 
 def _ensure_same_org(user: User, registry_type: RegistryType):
     if user.role != Role.SUPERADMIN and registry_type.organization_id != user.organization_id:
@@ -158,14 +172,16 @@ def sign_and_publish(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(*APPROVER_ROLES)),
 ):
-    """E-IMZO bilan tasdiqlash va reestrga e'lon qilish (lifecycle: C -> D)."""
+    """E-IMZO bilan tasdiqlash va reestrga e'lon qilish — faqat to'lov amalga oshirilgan
+    ("paid") yozuvlar uchun, ariza ko'rib chiqilmoqda -> to'lov jarayonida -> to'lov amalga
+    oshirildi bosqichlaridan ketma-ket o'tgandan so'ng oxirgi qadam sifatida."""
     record = db.get(RegistryRecord, record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Yozuv topilmadi")
     _ensure_same_org(user, record.registry_type)
 
-    if record.status != RegistryStatus.DRAFT:
-        raise HTTPException(status_code=409, detail="Yozuv allaqachon tasdiqlangan yoki noto'g'ri holatda")
+    if record.status != RegistryStatus.PAID:
+        raise HTTPException(status_code=409, detail="Yozuvni imzolashdan oldin to'lov bosqichlari yakunlanishi kerak")
 
     now = datetime.now(timezone.utc)
     record.signed_by_id = user.id
@@ -197,17 +213,20 @@ def change_status(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(*APPROVER_ROLES)),
 ):
-    """Faol yozuvni To'xtatilgan/Tugatilgan/Muxlat buzilgan holatiga o'tkazish."""
-    if new_status == RegistryStatus.DRAFT:
-        raise HTTPException(status_code=400, detail="Yozuvni qayta 'draft' holatiga qaytarib bo'lmaydi")
-
+    """Yozuv holatini ketma-ket bosqichlar bo'yicha o'zgartirish (ariza ko'rib chiqilmoqda ->
+    to'lov jarayonida -> to'lov amalga oshirildi, faol <-> to'xtatilgan, faol -> tugatilgan).
+    Faqat ALLOWED_STATUS_TRANSITIONS jadvalida ko'rsatilgan o'tishlarga ruxsat beriladi."""
     record = db.get(RegistryRecord, record_id)
     if not record:
         raise HTTPException(status_code=404, detail="Yozuv topilmadi")
     _ensure_same_org(user, record.registry_type)
 
-    if record.status == RegistryStatus.DRAFT:
-        raise HTTPException(status_code=409, detail="Avval yozuvni imzolab e'lon qiling")
+    allowed = ALLOWED_STATUS_TRANSITIONS.get(record.status, set())
+    if new_status not in allowed:
+        raise HTTPException(
+            status_code=409,
+            detail=f"'{record.status.value}' holatidan '{new_status.value}' holatiga o'tish mumkin emas",
+        )
 
     old_status = record.status
     record.status = new_status
