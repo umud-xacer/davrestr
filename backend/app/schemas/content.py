@@ -10,15 +10,19 @@ class ContentItemCreate(BaseModel):
     type: ContentType
     title: str
     description: str | None = None
+    image_url: str | None = None
     is_published: bool = True
     sort_order: int = 0
+    published_at: datetime | None = None
 
 
 class ContentItemUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    image_url: str | None = None
     is_published: bool | None = None
     sort_order: int | None = None
+    published_at: datetime | None = None
 
 
 class ContentItemOut(BaseModel):
@@ -26,6 +30,7 @@ class ContentItemOut(BaseModel):
     type: ContentType
     title: str
     description: str | None
+    image_url: str | None
     is_published: bool
     sort_order: int
     published_at: datetime | None
@@ -42,6 +47,11 @@ class PublicContentItemOut(BaseModel):
     type: ContentType
     title: str
     description: str | None
+    image_url: str | None
     published_at: datetime | None
 
     model_config = {"from_attributes": True}
+
+
+class ImageUploadOut(BaseModel):
+    url: str

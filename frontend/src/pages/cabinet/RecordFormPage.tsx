@@ -41,6 +41,7 @@ function SimpleField({
   return (
     <input
       type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+      step={field.type === "number" ? "any" : undefined}
       value={value ?? ""}
       onChange={(e) => onChange(field.type === "number" ? Number(e.target.value) : e.target.value)}
       className={commonClasses}

@@ -15,7 +15,7 @@ export function Navbar() {
     { label: t("nav.linkFaq"), to: "/" },
     { label: t("nav.linkSurvey"), to: "/" },
     { label: t("nav.linkNews"), to: "/" },
-    { label: t("nav.linkContact"), to: "/" },
+    { label: t("nav.linkContact"), to: "/apply" },
   ];
 
   return (

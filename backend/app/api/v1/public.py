@@ -1,11 +1,15 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.rate_limit import rate_limiter
+from app.models.application import Application
 from app.models.content import ContentItem
 from app.models.registry import RegistryRecord, RegistryType
+from app.schemas.application import ApplicationCreate, ApplicationOut
 from app.schemas.content import PublicContentItemOut
 from app.schemas.registry import CaptchaOut, FieldDef, PublicRecordOut, RevealCodeOut
 from app.services.captcha_service import generate_captcha, generate_reveal_code, verify_captcha
@@ -122,6 +126,31 @@ def list_public_content(
         .all()
     )
     return records
+
+
+@router.post(
+    "/applications",
+    response_model=ApplicationOut,
+    status_code=201,
+    dependencies=[Depends(rate_limiter(max_requests=10, window_seconds=60))],
+)
+def submit_application(payload: ApplicationCreate, db: Session = Depends(get_db)):
+    """Fuqaro Ochiq Portal orqali elektron xizmat uchun ariza yuboradi (avtorizatsiyasiz).
+
+    Ariza "submitted" holatida saqlanadi — keyingi barcha bosqichlarni (ko'rib chiqish,
+    to'lov, tasdiqlash) faqat Admin panel orqali o'zgartirish mumkin.
+    """
+    application = Application(
+        id=uuid.uuid4(),
+        service_title=payload.service_title,
+        full_name=payload.full_name,
+        phone=payload.phone,
+        message=payload.message,
+    )
+    db.add(application)
+    db.commit()
+    db.refresh(application)
+    return application
 
 
 @router.get("/verify/{verify_code}")

@@ -80,12 +80,33 @@ export interface PublicContentItemOut {
   type: ContentType;
   title: string;
   description: string | null;
+  image_url: string | null;
   published_at: string | null;
 }
 
 export interface ContentItemOut extends PublicContentItemOut {
   is_published: boolean;
   sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ApplicationStatus =
+  | "submitted"
+  | "under_review"
+  | "payment_pending"
+  | "paid"
+  | "approved"
+  | "rejected";
+
+export interface ApplicationOut {
+  id: string;
+  service_title: string;
+  full_name: string;
+  phone: string;
+  message: string | null;
+  status: ApplicationStatus;
+  admin_note: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { SearchPage } from "./pages/public/SearchPage";
 import { RecordDetailPage } from "./pages/public/RecordDetailPage";
+import { ApplyPage } from "./pages/public/ApplyPage";
 
 import { LoginPage } from "./pages/cabinet/LoginPage";
 import { CabinetDashboardPage } from "./pages/cabinet/CabinetDashboardPage";
@@ -15,6 +16,7 @@ import { RegistryBuilderPage } from "./pages/admin/RegistryBuilderPage";
 import { UsersPage } from "./pages/admin/UsersPage";
 import { AuditLogPage } from "./pages/admin/AuditLogPage";
 import { ContentPage } from "./pages/admin/ContentPage";
+import { ApplicationsPage } from "./pages/admin/ApplicationsPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
 const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
@@ -27,6 +29,7 @@ export default function App() {
         {/* Ochiq Portal */}
         <Route path="/" element={<SearchPage />} />
         <Route path="/record/:recordNumber" element={<RecordDetailPage />} />
+        <Route path="/apply" element={<ApplyPage />} />
 
         {/* Cabinet Module */}
         <Route path="/cabinet/login" element={<LoginPage />} />
@@ -93,6 +96,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
               <ContentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/applications"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <ApplicationsPage />
             </ProtectedRoute>
           }
         />

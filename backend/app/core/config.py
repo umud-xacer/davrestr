@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "Davreestr Portal API"
     API_V1_PREFIX: str = "/api/v1"
+    UPLOAD_DIR: str = "uploads"
 
     @model_validator(mode="after")
     def _guard_production_secret_key(self) -> "Settings":

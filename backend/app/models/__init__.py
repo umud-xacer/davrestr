@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.registry import RegistryType, RegistryRecord, RegistryStatus
 from app.models.audit import AuditLog
 from app.models.content import ContentItem, ContentType
+from app.models.application import Application, ApplicationStatus
 
 __all__ = [
     "Organization",
@@ -13,4 +14,6 @@ __all__ = [
     "AuditLog",
     "ContentItem",
     "ContentType",
+    "Application",
+    "ApplicationStatus",
 ]

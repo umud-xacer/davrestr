@@ -1,12 +1,25 @@
-import { FormEvent, useEffect, useState } from "react";
-import { apiClient } from "../../api/client";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { apiClient, resolveMediaUrl } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import { ContentItemOut, ContentType } from "../../types";
 
 const TYPES: ContentType[] = ["news", "service", "announcement"];
 
+function toDateInputValue(iso: string | null | undefined) {
+  if (!iso) return "";
+  return iso.slice(0, 10);
+}
+
 function emptyForm() {
-  return { type: "news" as ContentType, title: "", description: "", sortOrder: 0, isPublished: true };
+  return {
+    type: "news" as ContentType,
+    title: "",
+    description: "",
+    imageUrl: "" as string | null,
+    date: "",
+    sortOrder: 0,
+    isPublished: true,
+  };
 }
 
 export function ContentPage() {
@@ -17,6 +30,7 @@ export function ContentPage() {
   const [form, setForm] = useState(emptyForm());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = () => {
     apiClient.get<ContentItemOut[]>("/admin/content").then(({ data }) => setItems(data));
@@ -29,9 +43,29 @@ export function ContentPage() {
       type: item.type,
       title: item.title,
       description: item.description || "",
+      imageUrl: item.image_url,
+      date: toDateInputValue(item.published_at),
       sortOrder: item.sort_order,
       isPublished: item.is_published,
     });
+  };
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { data } = await apiClient.post<{ url: string }>("/admin/content/upload-image", fd);
+      setForm((f) => ({ ...f, imageUrl: data.url }));
+    } catch (err: any) {
+      setError(err.response?.data?.detail || t("content.uploadError"));
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
 
   const cancelEdit = () => {
@@ -44,20 +78,25 @@ export function ContentPage() {
     setError(null);
     setSaving(true);
     try {
+      const publishedAt = form.date ? new Date(`${form.date}T00:00:00`).toISOString() : null;
       if (editingId) {
         await apiClient.patch(`/admin/content/${editingId}`, {
           title: form.title,
           description: form.description || null,
+          image_url: form.imageUrl || null,
           sort_order: form.sortOrder,
           is_published: form.isPublished,
+          published_at: publishedAt,
         });
       } else {
         await apiClient.post("/admin/content", {
           type: form.type,
           title: form.title,
           description: form.description || null,
+          image_url: form.imageUrl || null,
           sort_order: form.sortOrder,
           is_published: form.isPublished,
+          published_at: publishedAt,
         });
       }
       cancelEdit();
@@ -133,6 +172,35 @@ export function ContentPage() {
             rows={3}
           />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">{t("content.imageLabel")}</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={uploading}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-slate-700"
+            />
+            {uploading && <p className="mt-1 text-xs text-slate-500">{t("content.uploading")}</p>}
+            {form.imageUrl && (
+              <img
+                src={resolveMediaUrl(form.imageUrl) || ""}
+                alt=""
+                className="mt-2 h-24 w-24 rounded-md border border-slate-200 object-cover"
+              />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">{t("content.dateLabel")}</label>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
+            />
+          </div>
+        </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
@@ -176,7 +244,14 @@ export function ContentPage() {
         <ul className="mt-3 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
           {visibleItems.map((item) => (
             <li key={item.id} className="flex items-center justify-between gap-3 p-3">
-              <div className="min-w-0">
+              {item.image_url && (
+                <img
+                  src={resolveMediaUrl(item.image_url) || ""}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded object-cover"
+                />
+              )}
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
                     {t(`contentType.${item.type}`)}

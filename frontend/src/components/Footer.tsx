@@ -1,9 +1,16 @@
+import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { FacebookIcon, TelegramIcon } from "./icons";
 
 export function Footer() {
   const { t } = useLanguage();
-  const QUICK_LINKS = [t("nav.linkDocs"), t("nav.linkFaq"), t("nav.linkSurvey"), t("nav.linkNews"), t("nav.linkContact")];
+  const QUICK_LINKS = [
+    { label: t("nav.linkDocs"), to: "/" },
+    { label: t("nav.linkFaq"), to: "/" },
+    { label: t("nav.linkSurvey"), to: "/" },
+    { label: t("nav.linkNews"), to: "/" },
+    { label: t("nav.linkContact"), to: "/apply" },
+  ];
 
   return (
     <footer className="mt-16 border-t border-slate-100 bg-white">
@@ -38,8 +45,10 @@ export function Footer() {
           <h3 className="text-sm font-semibold text-ink">{t("footer.linksTitle")}</h3>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             {QUICK_LINKS.map((l) => (
-              <li key={l} className="cursor-pointer hover:text-brand-700">
-                {l}
+              <li key={l.label}>
+                <Link to={l.to} className="cursor-pointer hover:text-brand-700">
+                  {l.label}
+                </Link>
               </li>
             ))}
           </ul>

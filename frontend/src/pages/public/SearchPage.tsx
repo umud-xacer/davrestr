@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiClient } from "../../api/client";
+import { apiClient, resolveMediaUrl } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import {
   ChevronLeftIcon,
@@ -264,13 +264,21 @@ export function SearchPage() {
             className="flex snap-x snap-mandatory gap-0 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {services.map((s) => (
-              <div key={s.id} className="w-full shrink-0 snap-start sm:w-1/2 sm:pl-8 lg:w-1/3">
+              <Link
+                key={s.id}
+                to={`/apply?service=${encodeURIComponent(s.title)}`}
+                className="block w-full shrink-0 snap-start sm:w-1/2 sm:pl-8 lg:w-1/3"
+              >
                 <div className="flex items-start gap-4">
-                  <img src="/images/service-icon.svg" alt="" className="h-[68px] w-[68px] shrink-0" />
-                  <h3 className="text-[17px] font-bold leading-snug text-black">{s.title}</h3>
+                  <img
+                    src={resolveMediaUrl(s.image_url) || "/images/service-icon.svg"}
+                    alt=""
+                    className="h-[68px] w-[68px] shrink-0 object-contain"
+                  />
+                  <h3 className="text-[17px] font-bold leading-snug text-black hover:text-brand-600">{s.title}</h3>
                 </div>
                 {s.description && <p className="mt-3 text-sm font-medium text-[#676767]">{s.description}</p>}
-              </div>
+              </Link>
             ))}
           </div>
           {services.length > 3 && (
@@ -328,7 +336,7 @@ export function SearchPage() {
           {news.map((n, i) => (
             <div key={n.id} className="overflow-hidden rounded-2xl bg-white shadow-sm transition duration-300 hover:shadow-md">
               <img
-                src={`/images/news/${(i % 3) + 1}.jpg`}
+                src={resolveMediaUrl(n.image_url) || `/images/news/${(i % 3) + 1}.jpg`}
                 alt=""
                 className="h-[220px] w-full object-cover"
               />

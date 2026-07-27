@@ -1,27 +1,34 @@
+import os
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timezone
 
 from app.api.deps import require_roles
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.rbac import ADMIN_ROLES, Role
 from app.core.security import hash_password
+from app.models.application import Application
 from app.models.audit import AuditLog
 from app.models.content import ContentItem
 from app.models.organization import Organization
 from app.models.registry import RegistryType
 from app.models.user import User
+from app.schemas.application import ApplicationOut, ApplicationStatusUpdate
 from app.schemas.audit import AuditLogOut
-from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate
+from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate, ImageUploadOut
 from app.schemas.registry import RegistryTypeCreate, RegistryTypeOut
 from app.schemas.user import OrganizationCreate, OrganizationOut, UserCreate, UserUpdate
 from app.schemas.auth import UserOut
 from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 
 
 def _scope_org_id(current: User, requested: uuid.UUID | None) -> uuid.UUID:
@@ -239,10 +246,11 @@ def create_content(
         type=payload.type,
         title=payload.title,
         description=payload.description,
+        image_url=payload.image_url,
         is_published=payload.is_published,
         sort_order=payload.sort_order,
         created_by_id=user.id,
-        published_at=datetime.now(timezone.utc) if payload.is_published else None,
+        published_at=payload.published_at or (datetime.now(timezone.utc) if payload.is_published else None),
     )
     db.add(item)
     db.commit()
@@ -272,8 +280,12 @@ def update_content(
         item.title = payload.title
     if payload.description is not None:
         item.description = payload.description
+    if payload.image_url is not None:
+        item.image_url = payload.image_url
     if payload.sort_order is not None:
         item.sort_order = payload.sort_order
+    if payload.published_at is not None:
+        item.published_at = payload.published_at
     if payload.is_published is not None:
         item.is_published = payload.is_published
         if payload.is_published and not item.published_at:
@@ -309,3 +321,71 @@ def delete_content(
         db, actor=user, action="content.delete", entity_type="content_item",
         entity_id=str(content_id), ip_address=request.client.host if request.client else None,
     )
+
+
+@router.post("/content/upload-image", response_model=ImageUploadOut)
+async def upload_content_image(
+    file: UploadFile = File(...),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    """Yangilik/xizmat kartochkasi uchun rasm yuklash — natijada qaytgan url ContentItem.image_url'ga yoziladi."""
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Faqat rasm fayllari (jpg, png, webp, gif) qabul qilinadi")
+
+    contents = await file.read()
+    if len(contents) > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="Fayl hajmi 5 MB dan oshmasligi kerak")
+
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(settings.UPLOAD_DIR, filename)
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    return ImageUploadOut(url=f"{settings.API_V1_PREFIX}/uploads/{filename}")
+
+
+# ---------- Arizalar (fuqarolar tomonidan yuborilgan elektron xizmat arizalari) ----------
+
+@router.get("/applications", response_model=list[ApplicationOut])
+def list_applications(
+    status_filter: str | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    query = db.query(Application)
+    if status_filter:
+        query = query.filter(Application.status == status_filter)
+    return query.order_by(Application.created_at.desc()).all()
+
+
+@router.patch("/applications/{application_id}/status", response_model=ApplicationOut)
+def update_application_status(
+    application_id: uuid.UUID,
+    payload: ApplicationStatusUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    """Ariza holatini (ko'rib chiqilmoqda / to'lov jarayonida / to'lov amalga oshirildi / tasdiqlandi /
+    rad etildi) faqat Admin panel orqali o'zgartirish mumkin — fuqaro tomonidan emas."""
+    application = db.get(Application, application_id)
+    if not application:
+        raise HTTPException(status_code=404, detail="Ariza topilmadi")
+
+    old_status = application.status
+    application.status = payload.status
+    application.reviewed_by_id = user.id
+    if payload.admin_note is not None:
+        application.admin_note = payload.admin_note
+
+    db.commit()
+    db.refresh(application)
+
+    log_action(
+        db, actor=user, action="application.status_change", entity_type="application",
+        entity_id=str(application.id), ip_address=request.client.host if request.client else None,
+        details={"from": old_status, "to": payload.status},
+    )
+    return application
