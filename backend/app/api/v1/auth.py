@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.database import get_db
+from app.core.rate_limit import rate_limiter
 from app.core.security import create_access_token, create_refresh_token, decode_token, verify_password
 from app.models.user import User
 from app.schemas.auth import LoginRequest, TokenResponse, UserOut
@@ -11,7 +12,11 @@ from app.services.audit_service import log_action
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limiter(max_requests=10, window_seconds=60))],
+)
 def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     """OneID (E-GOV OAuth2) integratsiyasi ulanguncha login/parol orqali autentifikatsiya.
 
@@ -39,7 +44,11 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limiter(max_requests=20, window_seconds=60))],
+)
 def refresh(refresh_token: str, db: Session = Depends(get_db)):
     payload = decode_token(refresh_token)
     if not payload or payload.get("type") != "refresh":
