@@ -105,38 +105,38 @@ export function RecordDetailPage() {
             </tr>
           </tbody>
         </table>
-      </div>
 
-      {listFields.map((f) => {
-        const items: Record<string, any>[] = record.data[f.key] || [];
-        if (items.length === 0) return null;
-        return (
-          <div key={f.key} className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100 text-left text-slate-600">
-                  {RESTRICTION_COLUMNS.map((c) => (
-                    <th key={c.key} className="border border-slate-200 p-2 font-medium">
-                      {c.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={idx} className="bg-white">
+        {listFields.map((f) => {
+          const items: Record<string, any>[] = record.data[f.key] || [];
+          if (items.length === 0) return null;
+          return (
+            <div key={f.key} className="overflow-x-auto px-[35px] pb-[20px]">
+              <table className="w-full min-w-[600px] border-collapse text-[13px]">
+                <thead>
+                  <tr>
                     {RESTRICTION_COLUMNS.map((c) => (
-                      <td key={c.key} className="border border-slate-200 p-2 text-slate-700">
-                        {item[c.key] ?? "—"}
-                      </td>
+                      <th key={c.key} className="border border-[#d7e6fb] p-2 text-left font-bold text-black">
+                        {c.label}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={idx}>
+                      {RESTRICTION_COLUMNS.map((c) => (
+                        <td key={c.key} className="border border-[#d7e6fb] p-2 text-black">
+                          {item[c.key] ?? "—"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
 
       <p className="mt-4 text-center text-xs text-slate-400">
         {t("record.verifyCode")}: {record.verify_code} — {t("record.verifyHint")}{" "}

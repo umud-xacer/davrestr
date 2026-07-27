@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiClient, resolveMediaUrl } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
 import {
@@ -15,6 +15,7 @@ import { PublicContentItemOut, PublicRecordOut, RevealCodeOut } from "../../type
 
 export function SearchPage() {
   const { lang, t } = useLanguage();
+  const navigate = useNavigate();
   const SEARCH_TYPES = [
     { label: t("home.searchTypeCadastre"), placeholder: t("home.searchTypeCadastrePlaceholder") },
     { label: t("home.searchTypeTin"), placeholder: t("home.searchTypeTinPlaceholder") },
@@ -101,6 +102,12 @@ export function SearchPage() {
       const { data } = await apiClient.get<PublicRecordOut[]>("/public/search", {
         params: { q: query.trim(), captcha_token: reveal.token, captcha_answer: confirmAnswer.trim() },
       });
+      if (data.length === 1) {
+        // Aniq bitta natija topilsa (odatda kadastr raqami bo'yicha qidiruvda), ro'yxatsiz
+        // to'g'ridan-to'g'ri ma'lumot sahifasiga o'tkaziladi — real saytdagi kabi.
+        navigate(`/record/${encodeURIComponent(data[0].record_number)}`);
+        return;
+      }
       setResults(data);
     } catch (err: any) {
       if (err.response?.status === 429) {
