@@ -22,7 +22,7 @@ export function Navbar() {
     <header className="relative bg-white">
       {/* Yuqori ingichka qator */}
       <div className="border-b border-slate-100">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+        <div className="mx-auto flex max-w-[1364px] flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
           {!user ? (
             <Link
               to="/cabinet/login"
@@ -80,19 +80,19 @@ export function Navbar() {
       </div>
 
       {/* Logo + nomi */}
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link to="/" className="flex min-w-0 items-center gap-3">
+      <div className="mx-auto flex max-w-[1364px] items-center justify-between px-4 py-4">
+        <Link to="/" className="flex min-w-0 items-center gap-[22px]">
           <img src="/images/gerb.png" alt="" className="h-14 w-14 shrink-0 object-contain" />
 
-          <div className="min-w-0 max-w-[260px] leading-tight sm:max-w-none">
-            <div className="text-[15px] font-bold text-ink sm:whitespace-normal">{t("nav.titleLine1")}</div>
-            <div className="text-[15px] font-bold text-ink">{t("nav.titleLine2")}</div>
+          <div className="min-w-0 max-w-[300px] leading-[1.4] sm:max-w-none">
+            <div className="text-[16px] font-semibold text-ink sm:whitespace-normal">{t("nav.titleLine1")}</div>
+            <div className="text-[16px] font-semibold text-ink">{t("nav.titleLine2")}</div>
           </div>
         </Link>
 
-        <nav className="hidden gap-6 text-sm text-faint lg:flex">
+        <nav className="hidden gap-6 text-sm text-ink lg:flex">
           {NAV_LINKS.map((link) => (
-            <Link key={link.label} to={link.to} className="font-medium hover:text-ink">
+            <Link key={link.label} to={link.to} className="font-semibold hover:text-[#6192E7]">
               {link.label}
             </Link>
           ))}

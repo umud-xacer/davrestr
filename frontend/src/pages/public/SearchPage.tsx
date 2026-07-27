@@ -121,7 +121,7 @@ export function SearchPage() {
         className="relative overflow-hidden bg-[#CEE5FA] bg-no-repeat bg-[length:auto]"
         style={{ backgroundImage: "url('/images/building.png')", backgroundPosition: "106% 100%" }}
       >
-        <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-10 sm:pb-24">
+        <div className="relative mx-auto max-w-[1364px] px-4 pb-20 pt-10 sm:pb-24">
           <div className="max-w-[560px] space-y-6">
             <h1 className="text-[26px] font-extrabold leading-tight text-[#282A2E] sm:text-[30px]">
               {t("home.heroTitle")}
@@ -247,7 +247,7 @@ export function SearchPage() {
       </div>
 
       {/* Elektron xizmatlar */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-[1364px] px-4 py-16">
         <h2 className="text-center text-[26px] font-bold text-ink sm:text-[30px]">{t("home.servicesTitle")}</h2>
         <div className="relative mt-8">
           {services.length > 3 && (
@@ -295,7 +295,7 @@ export function SearchPage() {
 
       {/* Qanday olinadi */}
       <section className="bg-[#f9fafb] py-16">
-        <div className="mx-auto max-w-6xl px-4">
+        <div className="mx-auto max-w-[1364px] px-4">
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
             <div>
               <h2 className="text-[26px] font-bold text-ink sm:text-[30px]">
@@ -328,7 +328,7 @@ export function SearchPage() {
       </section>
 
       {/* So'nggi yangiliklar */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-[1364px] px-4 py-16">
         <h2 className="mb-12 flex justify-center text-[26px] font-bold text-ink sm:text-[30px]">
           {t("home.newsTitle")}
         </h2>

@@ -17,7 +17,10 @@ export default {
         faint: "#999999",
       },
       fontFamily: {
-        sans: ["Manrope", "system-ui", "sans-serif"],
+        // davreestr.uz "Gilroy" ishlatadi (tijorat fonti) — fayllarini nusxalamasdan,
+        // shu nom mahalliy o'rnatilgan bo'lsa ishlatiladi, aks holda Manrope (vizual jihatdan
+        // juda yaqin geometrik grotesk) fallback bo'lib xizmat qiladi.
+        sans: ["Gilroy", "Manrope", "system-ui", "sans-serif"],
       },
     },
   },
