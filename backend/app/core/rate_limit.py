@@ -1,5 +1,6 @@
 from fastapi import HTTPException, Request, status
 
+from app.core.net import get_client_ip
 from app.core.redis_client import redis_client
 
 
@@ -13,7 +14,7 @@ def rate_limiter(max_requests: int, window_seconds: int):
     """
 
     def dependency(request: Request):
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = get_client_ip(request) or "unknown"
         key = f"ratelimit:{request.url.path}:{client_ip}"
         try:
             current = redis_client.incr(key)

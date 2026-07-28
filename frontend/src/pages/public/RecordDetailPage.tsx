@@ -1,41 +1,58 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiClient } from "../../api/client";
-import { FieldDef, PublicRecordOut, STATUS_LABELS } from "../../types";
-
-function formatValue(field: FieldDef, value: any): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (field.type === "boolean") return value ? "Ha" : "Yo'q";
-  if (field.type === "number") return Number(value).toLocaleString("uz-UZ");
-  return String(value);
-}
-
-const RESTRICTION_COLUMNS: { key: string; label: string }[] = [
-  { key: "raqami", label: "Taqiq/cheklov raqami" },
-  { key: "turi", label: "Taqiq/cheklov turi" },
-  { key: "kim_tomonidan", label: "Kim tomonidan" },
-  { key: "sana", label: "Sana" },
-  { key: "ijro_raqami", label: "Ijro xujjatining raqami" },
-  { key: "almashuv_kodi", label: "Ma'lumot almashuv orqali qo'yilganligi (almashuv kodi)" },
-];
+import { useLanguage } from "../../context/LanguageContext";
+import { FieldDef, PublicRecordOut, SiteSettingsOut } from "../../types";
 
 export function RecordDetailPage() {
   const { recordNumber } = useParams<{ recordNumber: string }>();
+  const { lang, t } = useLanguage();
   const [record, setRecord] = useState<PublicRecordOut | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<SiteSettingsOut | null>(null);
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: t("status.draft"),
+    payment_pending: t("status.payment_pending"),
+    paid: t("status.paid"),
+    active: t("status.active"),
+    suspended: t("status.suspended"),
+    terminated: t("status.terminated"),
+    violated: t("status.violated"),
+  };
+
+  const RESTRICTION_COLUMNS: { key: string; label: string }[] = [
+    { key: "raqami", label: t("record.restrictionNumber") },
+    { key: "turi", label: t("record.restrictionType") },
+    { key: "kim_tomonidan", label: t("record.restrictionBy") },
+    { key: "sana", label: t("record.restrictionDate") },
+    { key: "ijro_raqami", label: t("record.restrictionExecNumber") },
+    { key: "almashuv_kodi", label: t("record.restrictionExchangeCode") },
+  ];
+
+  function formatValue(field: FieldDef, value: any): string {
+    if (value === null || value === undefined || value === "") return "—";
+    if (field.type === "boolean") return value ? t("record.yes") : t("record.no");
+    if (field.type === "number") return Number(value).toLocaleString(lang === "ru" ? "ru-RU" : "uz-UZ");
+    return String(value);
+  }
 
   useEffect(() => {
     apiClient
       .get<PublicRecordOut>(`/public/records/${recordNumber}`)
       .then(({ data }) => setRecord(data))
-      .catch(() => setError("Yozuv topilmadi yoki hali e'lon qilinmagan"));
+      .catch(() => setError(t("record.notFound")));
+    apiClient
+      .get<SiteSettingsOut>("/public/notice")
+      .then(({ data }) => setNotice(data))
+      .catch(() => {});
   }, [recordNumber]);
 
   if (error) {
     return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-red-600">{error}</div>;
   }
   if (!record) {
-    return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-slate-500">Yuklanmoqda...</div>;
+    return <div className="mx-auto max-w-3xl px-4 py-10 text-center text-slate-500">{t("record.loading")}</div>;
   }
 
   const simpleFields = record.field_defs.filter((f) => f.type !== "list");
@@ -43,91 +60,98 @@ export function RecordDetailPage() {
   const manzil = record.data.manzil;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-center text-2xl font-semibold text-slate-800">{record.record_number}</h1>
-      {manzil && <p className="mt-1 text-center text-brand-600">{manzil}</p>}
+    <div className="mx-auto max-w-[974px] px-4 py-10">
+      <h1 className="text-center text-[25px] font-normal text-muted">{record.record_number}</h1>
+      {manzil && <p className="mt-1 text-center text-[17px] text-[#6699F2]">{manzil}</p>}
 
-      <p className="mt-4 rounded-lg bg-slate-100 p-3 text-center text-sm italic text-slate-600">
-        Agar siz ushbu obyekt mulkdori bo'lsangiz, rasmiy ma'lumotnoma (elektron raqamli imzo bilan
-        tasdiqlangan) olish uchun shaxsiy kabinet orqali buyurtma berishingiz mumkin.
-      </p>
+      <p className="mt-4 text-center text-[16px] italic text-[#676767]">{t("record.notice")}</p>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200">
-        <table className="w-full text-sm">
+      <div className="mt-6 overflow-hidden rounded-lg bg-brand-50">
+        <table className="w-full text-[15px]">
           <tbody>
             {simpleFields
               .filter((f) => f.key !== "manzil")
-              .map((f, idx) => (
-                <tr key={f.key} className={idx % 2 === 0 ? "" : "bg-slate-50"}>
-                  <td className="p-3 font-medium text-slate-600">{f.label}:</td>
-                  <td className="p-3 text-right">{formatValue(f, record.data[f.key])}</td>
+              .map((f) => (
+                <tr key={f.key}>
+                  <td className="px-[35px] py-[9px] font-bold text-black">{f.label}:</td>
+                  <td className="px-[35px] py-[9px] text-right text-black">{formatValue(f, record.data[f.key])}</td>
                 </tr>
               ))}
 
             {listFields.map((f) => {
               const items: Record<string, any>[] = record.data[f.key] || [];
               return (
-                <tr key="cheklov-summary" className="bg-slate-50">
-                  <td className="p-3 font-medium text-slate-600">Obyektga nisbatan {f.label.toLowerCase()}:</td>
-                  <td className="p-3 text-right">
+                <tr key="cheklov-summary">
+                  <td className="px-[35px] py-[9px] font-bold text-black">
+                    {t("record.restrictionsFor")} {f.label.toLowerCase()}:
+                  </td>
+                  <td className="px-[35px] py-[9px] text-right">
                     {items.length > 0 ? (
-                      <span className="font-semibold text-orange-600">Mavjud</span>
+                      <span className="text-[#FF5722]">{t("record.exists")}</span>
                     ) : (
-                      <span className="text-slate-400">Mavjud emas</span>
+                      <span className="text-black">{t("record.notExists")}</span>
                     )}
                   </td>
                 </tr>
               );
             })}
 
-            <tr className={simpleFields.length % 2 === 0 ? "" : "bg-slate-50"}>
-              <td className="p-3 font-medium text-slate-600">Holati</td>
-              <td className="p-3 text-right">{STATUS_LABELS[record.status]}</td>
+            <tr>
+              <td className="px-[35px] py-[9px] font-bold text-black">{t("record.status")}</td>
+              <td className="px-[35px] py-[9px] text-right text-black">{STATUS_LABELS[record.status]}</td>
             </tr>
-            <tr className="bg-slate-50">
-              <td className="p-3 font-medium text-slate-600">E'lon qilingan sana</td>
-              <td className="p-3 text-right">
-                {record.published_at ? new Date(record.published_at).toLocaleDateString("uz-UZ") : "—"}
+            <tr>
+              <td className="px-[35px] py-[9px] font-bold text-black">{t("record.publishedDate")}</td>
+              <td className="px-[35px] py-[9px] text-right text-black">
+                {record.published_at
+                  ? new Date(record.published_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "uz-UZ")
+                  : "—"}
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
 
-      {listFields.map((f) => {
-        const items: Record<string, any>[] = record.data[f.key] || [];
-        if (items.length === 0) return null;
-        return (
-          <div key={f.key} className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100 text-left text-slate-600">
-                  {RESTRICTION_COLUMNS.map((c) => (
-                    <th key={c.key} className="border border-slate-200 p-2 font-medium">
-                      {c.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={idx} className="bg-white">
+        {listFields.map((f) => {
+          const items: Record<string, any>[] = record.data[f.key] || [];
+          if (items.length === 0) return null;
+          return (
+            <div key={f.key} className="overflow-x-auto px-[35px] pb-[20px]">
+              <table className="w-full min-w-[600px] border-collapse text-[13px]">
+                <thead>
+                  <tr>
                     {RESTRICTION_COLUMNS.map((c) => (
-                      <td key={c.key} className="border border-slate-200 p-2 text-slate-700">
-                        {item[c.key] ?? "—"}
-                      </td>
+                      <th key={c.key} className="border border-[#d7e6fb] p-2 text-left font-bold text-black">
+                        {c.label}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={idx}>
+                      {RESTRICTION_COLUMNS.map((c) => (
+                        <td key={c.key} className="border border-[#d7e6fb] p-2 text-black">
+                          {item[c.key] ?? "—"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+
+      {notice?.maintenance_notice_enabled && (
+        <p className="mt-4 rounded-lg bg-amber-50 p-3 text-center text-sm italic text-amber-800">
+          {t("record.maintenanceNotice").replace("{hours}", String(notice.maintenance_notice_hours))}
+        </p>
+      )}
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Tekshirish kodi: {record.verify_code} — bu ko'chirmaning haqiqiyligini{" "}
-        <span className="underline">/verify</span> orqali tekshirishingiz mumkin.
+        {t("record.verifyCode")}: {record.verify_code} — {t("record.verifyHint")}{" "}
+        <span className="underline">/verify</span> {t("record.verifyHintSuffix")}
       </p>
     </div>
   );

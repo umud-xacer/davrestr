@@ -38,6 +38,21 @@ def generate_captcha() -> dict:
     return {"token": token, "image_base64": image_base64}
 
 
+def generate_reveal_code() -> dict:
+    """Rasmsiz, ochiq matnli tasdiqlash kodi.
+
+    Public qidiruv natijasini (kadastr ma'lumotlarini) ko'rsatishdan oldin foydalanuvchidan
+    ekranda chiqqan kodni qayta kiritishni talab qiladigan qo'shimcha bosqich uchun — bir martalik
+    avtomatlashtirilgan skanerlashni sekinlashtiradi. Token generate_captcha bilan bir xil
+    HMAC mexanizmidan foydalanadi, shuning uchun verify_captcha orqali tekshiriladi.
+    """
+    code = "".join(secrets.choice("0123456789") for _ in range(4))
+    issued_at = int(time.time())
+    signature = _sign(code, issued_at)
+    token = base64.urlsafe_b64encode(f"{code}:{issued_at}:{signature}".encode()).decode()
+    return {"token": token, "code": code}
+
+
 def verify_captcha(token: str, answer: str) -> bool:
     try:
         decoded = base64.urlsafe_b64decode(token.encode()).decode()

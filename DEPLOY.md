@@ -102,6 +102,34 @@ sudo ufw enable
 
 PostgreSQL (5432), Redis (6379) va backend (8000) portlari `docker-compose.prod.yml`da hostga chiqarilmagani uchun ular allaqachon tashqi internetdan ko'rinmaydi — bu qo'shimcha himoya qatlami.
 
+## 9.1. fail2ban (brute-force himoyasi)
+
+Caddy `./caddy-logs/access.log`ga har bir so'rovni JSON ko'rinishda yozadi
+(Caddyfile'da sozlangan). Bu fayl bilan fail2ban'ni ulash uchun:
+
+```bash
+sudo apt install -y fail2ban
+sudo cp deploy/fail2ban/filter.d/caddy-auth.conf /etc/fail2ban/filter.d/
+sudo cp deploy/fail2ban/jail.d/caddy-auth.conf /etc/fail2ban/jail.d/
+```
+
+`/etc/fail2ban/jail.d/caddy-auth.conf` ichidagi `logpath`ni serverdagi haqiqiy
+loyiha yo'liga moslang (3-qadamda `git clone` qilingan papka, backup cron
+qatoridagi yo'l bilan bir xil bo'lishi kerak), so'ng:
+
+```bash
+sudo systemctl enable --now fail2ban
+sudo systemctl restart fail2ban
+sudo fail2ban-client status caddy-auth
+```
+
+**Muhim:** bu login/refresh'dagi 401 va rate-limit'dagi 429 javoblarni
+kuzatib, takrorlanuvchi IP'ni ufw orqali bloklaydi — lekin faqat Caddy
+`client_ip`ni to'g'ri aniqlasa ishlaydi. Caddyfile'dagi global
+`trusted_proxies` ro'yxati Cloudflare'ning IP oralig'i — bu ro'yxat
+vaqti-vaqti bilan (https://www.cloudflare.com/ips-v4, /ips-v6) yangilanishi
+kerak, aks holda `client_ip` noto'g'ri chiqib, fail2ban ishlamay qoladi.
+
 ## 10. Zaxira nusxa (backup)
 
 Kunlik avtomatik backup uchun serverda cron qo'shing:

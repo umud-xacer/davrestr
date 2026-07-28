@@ -35,7 +35,7 @@ export interface RegistryTypeOut {
   is_active: boolean;
 }
 
-export type RegistryStatus = "draft" | "active" | "suspended" | "terminated" | "violated";
+export type RegistryStatus = "draft" | "payment_pending" | "paid" | "active" | "suspended" | "terminated" | "violated";
 
 export interface RegistryRecordOut {
   id: string;
@@ -68,6 +68,63 @@ export interface CaptchaOut {
   image_base64: string;
 }
 
+export interface RevealCodeOut {
+  token: string;
+  code: string;
+}
+
+export interface SiteSettingsOut {
+  maintenance_notice_enabled: boolean;
+  maintenance_notice_hours: number;
+}
+
+export interface DocumentOut {
+  id: string;
+  title: string;
+  original_filename: string;
+  file_url: string;
+  page_url: string;
+  created_at: string;
+}
+
+export type ContentType = "news" | "service" | "announcement";
+
+export interface PublicContentItemOut {
+  id: string;
+  type: ContentType;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  published_at: string | null;
+}
+
+export interface ContentItemOut extends PublicContentItemOut {
+  is_published: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ApplicationStatus =
+  | "submitted"
+  | "under_review"
+  | "payment_pending"
+  | "paid"
+  | "approved"
+  | "rejected";
+
+export interface ApplicationOut {
+  id: string;
+  service_title: string;
+  full_name: string;
+  phone: string;
+  message: string | null;
+  status: ApplicationStatus;
+  admin_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AuditLogOut {
   id: string;
   actor_username: string | null;
@@ -85,19 +142,3 @@ export interface OrganizationOut {
   code: string;
   is_active: boolean;
 }
-
-export const STATUS_LABELS: Record<RegistryStatus, string> = {
-  draft: "Loyiha",
-  active: "Faol",
-  suspended: "To'xtatilgan",
-  terminated: "Tugatilgan",
-  violated: "Muxlat buzilgan",
-};
-
-export const ROLE_LABELS: Record<Role, string> = {
-  citizen: "Fuqaro",
-  cabinet_employee: "Idora xodimi",
-  cabinet_approver: "Mas'ul shaxs (tasdiqlovchi)",
-  org_admin: "Tashkilot administratori",
-  superadmin: "SuperAdministrator",
-};

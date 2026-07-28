@@ -1,15 +1,22 @@
 import { Link } from "react-router-dom";
-
-const CARDS = [
-  { to: "/admin/registry-types", title: "Reestr strukturasi konstruktori", desc: "Dynamic Form Builder — yangi reestr turlarini yaratish" },
-  { to: "/admin/users", title: "Foydalanuvchilar va huquqlar", desc: "Xodimlar, mas'ul shaxslar, tashkilotlar bo'yicha boshqaruv" },
-  { to: "/admin/audit-logs", title: "Audit jurnali", desc: "Tizimdagi barcha muhim amallar tarixi" },
-];
+import { useLanguage } from "../../context/LanguageContext";
 
 export function AdminDashboardPage() {
+  const { t } = useLanguage();
+  const CARDS = [
+    { to: "/admin/registry-types", title: t("adminDashboard.card1Title"), desc: t("adminDashboard.card1Desc") },
+    { to: "/admin/records", title: t("adminNav.recordEdit"), desc: t("adminRecordEdit.desc") },
+    { to: "/admin/documents", title: t("adminNav.documents"), desc: t("documents.desc") },
+    { to: "/admin/content", title: t("adminDashboard.card2Title"), desc: t("adminDashboard.card2Desc") },
+    { to: "/admin/users", title: t("adminDashboard.card3Title"), desc: t("adminDashboard.card3Desc") },
+    { to: "/admin/audit-logs", title: t("adminDashboard.card4Title"), desc: t("adminDashboard.card4Desc") },
+    { to: "/admin/applications", title: t("adminDashboard.card5Title"), desc: t("adminDashboard.card5Desc") },
+    { to: "/admin/settings", title: t("adminDashboard.card6Title"), desc: t("adminDashboard.card6Desc") },
+  ];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-xl font-semibold text-slate-800">SuperAdmin Panel</h1>
+      <h1 className="text-xl font-semibold text-slate-800">{t("adminDashboard.title")}</h1>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {CARDS.map((c) => (
           <Link

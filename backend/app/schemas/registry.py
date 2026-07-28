@@ -87,3 +87,8 @@ class PublicRecordOut(BaseModel):
 class CaptchaOut(BaseModel):
     token: str
     image_base64: str
+
+
+class RevealCodeOut(BaseModel):
+    token: str
+    code: str

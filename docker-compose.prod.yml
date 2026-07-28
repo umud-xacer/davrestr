@@ -27,9 +27,12 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
-      BACKEND_CORS_ORIGINS: '["https://${DOMAIN}"]'
+      BACKEND_CORS_ORIGINS: '["https://${DOMAIN}", "https://www.${DOMAIN}"]'
       QR_VERIFY_BASE_URL: https://${DOMAIN}/api/v1/public/verify
+      PUBLIC_SITE_BASE_URL: https://${DOMAIN}
       ENVIRONMENT: production
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,7 +56,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:80/"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -72,6 +75,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+      - ./caddy-logs:/var/log/caddy
     depends_on:
       backend:
         condition: service_healthy
@@ -82,3 +86,4 @@ volumes:
   postgres_data:
   caddy_data:
   caddy_config:
+  backend_uploads:
