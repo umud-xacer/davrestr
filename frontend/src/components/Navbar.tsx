@@ -40,6 +40,9 @@ export function Navbar() {
                   {t("nav.kabinet")}
                 </Link>
               )}
+              <Link to="/cabinet/change-password" className="text-xs font-medium text-slate-600 hover:underline">
+                {t("nav.changePassword")}
+              </Link>
               <button
                 onClick={() => {
                   logout();

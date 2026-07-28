@@ -2,6 +2,7 @@ import os
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timezone
@@ -16,15 +17,16 @@ from app.models.application import Application
 from app.models.audit import AuditLog
 from app.models.content import ContentItem
 from app.models.organization import Organization
-from app.models.registry import RegistryType
+from app.models.registry import RegistryRecord, RegistryType
 from app.models.user import User
 from app.schemas.application import ApplicationOut, ApplicationStatusUpdate
 from app.schemas.audit import AuditLogOut
 from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate, ImageUploadOut
-from app.schemas.registry import RegistryTypeCreate, RegistryTypeOut
+from app.schemas.registry import RegistryRecordOut, RegistryRecordUpdate, RegistryTypeCreate, RegistryTypeOut
 from app.schemas.settings import SiteSettingsOut, SiteSettingsUpdate
 from app.schemas.user import OrganizationCreate, OrganizationOut, UserCreate, UserUpdate
 from app.schemas.auth import UserOut
+from app.services.record_service import compute_signature_hash
 from app.services.settings_service import get_settings
 from app.services.audit_service import log_action
 
@@ -106,6 +108,94 @@ def deactivate_registry_type(
         entity_id=str(registry_type.id), ip_address=get_client_ip(request),
     )
     return registry_type
+
+
+# ---------- Kadastr yozuvlarini to'liq tahrirlash ----------
+# Cabinet'dagi PUT /cabinet/records/{id} faqat "draft" holatidagi yozuvlarni tahrirlashga
+# ruxsat beradi (oddiy xodim ish oqimi). Bu yerdagi endpoint'lar faqat ADMIN_ROLES uchun —
+# yozuv holati qanday bo'lishidan qat'iy nazar (shu jumladan allaqachon e'lon
+# qilingan/imzolangan) tuzatish imkonini beradi, lekin har bir o'zgarish to'liq
+# before/after audit yozuvi bilan qayd etiladi.
+
+@router.get("/records", response_model=list[RegistryRecordOut])
+def search_records_admin(
+    q: str | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    query = db.query(RegistryRecord).join(RegistryType)
+    if user.role != Role.SUPERADMIN:
+        query = query.filter(RegistryType.organization_id == user.organization_id)
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(
+                RegistryRecord.record_number.ilike(like),
+                RegistryRecord.subject_name.ilike(like),
+                RegistryRecord.subject_pinfl == q,
+            )
+        )
+    return query.order_by(RegistryRecord.updated_at.desc()).limit(50).all()
+
+
+@router.get("/records/{record_id}", response_model=RegistryRecordOut)
+def get_record_admin(
+    record_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    record = db.get(RegistryRecord, record_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Yozuv topilmadi")
+    if user.role != Role.SUPERADMIN and record.registry_type.organization_id != user.organization_id:
+        raise HTTPException(status_code=403, detail="Ruxsat yo'q")
+    return record
+
+
+@router.put("/records/{record_id}", response_model=RegistryRecordOut)
+def update_record_admin(
+    record_id: uuid.UUID,
+    payload: RegistryRecordUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    record = db.get(RegistryRecord, record_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Yozuv topilmadi")
+    if user.role != Role.SUPERADMIN and record.registry_type.organization_id != user.organization_id:
+        raise HTTPException(status_code=403, detail="Ruxsat yo'q")
+
+    before = {"subject_pinfl": record.subject_pinfl, "subject_name": record.subject_name, "data": record.data}
+
+    if payload.subject_pinfl is not None:
+        record.subject_pinfl = payload.subject_pinfl
+    if payload.subject_name is not None:
+        record.subject_name = payload.subject_name
+    if payload.data is not None:
+        record.data = payload.data
+
+    # Yozuv allaqachon imzolangan bo'lsa, signature_hash ma'lumotdan hisoblanadi — tuzatishdan
+    # keyin qayta hisoblanmasa, /public/verify eski, endi mos kelmaydigan hash'ni ko'rsatib qolardi.
+    if record.signed_at is not None:
+        record.signature_hash = compute_signature_hash(record, record.signed_by_id or user.id)
+
+    db.commit()
+    db.refresh(record)
+
+    log_action(
+        db,
+        actor=user,
+        action="record.admin_full_edit",
+        entity_type="registry_record",
+        entity_id=str(record.id),
+        ip_address=get_client_ip(request),
+        details={
+            "before": before,
+            "after": {"subject_pinfl": record.subject_pinfl, "subject_name": record.subject_name, "data": record.data},
+        },
+    )
+    return record
 
 
 # ---------- Organizations (faqat superadmin) ----------

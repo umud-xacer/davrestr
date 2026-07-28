@@ -14,12 +14,13 @@ import { RecordFormPage } from "./pages/cabinet/RecordFormPage";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { RegistryBuilderPage } from "./pages/admin/RegistryBuilderPage";
+import { AdminRecordEditPage } from "./pages/admin/AdminRecordEditPage";
 import { UsersPage } from "./pages/admin/UsersPage";
 import { AuditLogPage } from "./pages/admin/AuditLogPage";
 import { ContentPage } from "./pages/admin/ContentPage";
 import { ApplicationsPage } from "./pages/admin/ApplicationsPage";
 import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
-import { ChangePasswordPage } from "./pages/admin/ChangePasswordPage";
+import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
 const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
@@ -60,6 +61,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        {/* Parolni almashtirish — barcha kirgan xodim/admin rollari uchun (faqat admin
+            panelga kirish huquqi bo'lmagan cabinet_employee/cabinet_approver ham foydalanadi) */}
+        <Route
+          path="/cabinet/change-password"
+          element={
+            <ProtectedRoute allowedRoles={[...STAFF_ROLES]}>
+              <ChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Panel (SuperAdmin System) — chap tarafdagi navbar (AdminLayout) barcha
             bo'limlarni birlashtiradi, har bir sahifa shu Outlet ichida ochiladi */}
@@ -73,12 +84,12 @@ export default function App() {
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="registry-types" element={<RegistryBuilderPage />} />
+          <Route path="records" element={<AdminRecordEditPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="audit-logs" element={<AuditLogPage />} />
           <Route path="content" element={<ContentPage />} />
           <Route path="applications" element={<ApplicationsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
-          <Route path="change-password" element={<ChangePasswordPage />} />
         </Route>
       </Routes>
       <Footer />

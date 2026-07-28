@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
-import { apiClient } from "../../api/client";
-import { useLanguage } from "../../context/LanguageContext";
+import { apiClient } from "../api/client";
+import { useLanguage } from "../context/LanguageContext";
 
 export function ChangePasswordPage() {
   const { t } = useLanguage();

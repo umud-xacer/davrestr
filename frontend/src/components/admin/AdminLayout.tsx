@@ -4,12 +4,13 @@ import { useLanguage } from "../../context/LanguageContext";
 const NAV_ITEMS: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "adminNav.dashboard", end: true },
   { to: "/admin/registry-types", label: "adminNav.registryTypes" },
+  { to: "/admin/records", label: "adminNav.recordEdit" },
   { to: "/admin/content", label: "adminNav.content" },
   { to: "/admin/users", label: "adminNav.users" },
   { to: "/admin/applications", label: "adminNav.applications" },
   { to: "/admin/audit-logs", label: "adminNav.auditLogs" },
   { to: "/admin/settings", label: "adminNav.settings" },
-  { to: "/admin/change-password", label: "adminNav.changePassword" },
+  { to: "/cabinet/change-password", label: "adminNav.changePassword" },
 ];
 
 export function AdminLayout() {
