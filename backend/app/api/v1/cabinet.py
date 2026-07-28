@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_roles
 from app.core.database import get_db
+from app.core.net import get_client_ip
 from app.core.rbac import APPROVER_ROLES, STAFF_ROLES, Role
 from app.models.registry import RegistryRecord, RegistryStatus, RegistryType
 from app.models.user import User
@@ -126,7 +127,7 @@ def create_record(
         action="record.create",
         entity_type="registry_record",
         entity_id=str(record.id),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         details={"registry_type": registry_type.code},
     )
     return record
@@ -164,7 +165,7 @@ def update_record(
         action="record.update",
         entity_type="registry_record",
         entity_id=str(record.id),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
     )
     return record
 
@@ -203,7 +204,7 @@ def sign_and_publish(
         action="record.sign_and_publish",
         entity_type="registry_record",
         entity_id=str(record.id),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         details={"signature_hash": record.signature_hash},
     )
     return record
@@ -243,7 +244,7 @@ def change_status(
         action="record.status_change",
         entity_type="registry_record",
         entity_id=str(record.id),
-        ip_address=request.client.host if request.client else None,
+        ip_address=get_client_ip(request),
         details={"from": old_status, "to": new_status},
     )
     return record

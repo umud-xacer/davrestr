@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from app.core.anti_scrape import scrape_guard
 from app.core.database import get_db
 from app.core.rate_limit import rate_limiter
 from app.models.application import Application
@@ -61,7 +62,10 @@ def get_reveal_code():
 @router.get(
     "/search",
     response_model=list[PublicRecordOut],
-    dependencies=[Depends(rate_limiter(max_requests=30, window_seconds=60))],
+    dependencies=[
+        Depends(rate_limiter(max_requests=30, window_seconds=60)),
+        Depends(scrape_guard("public_search", threshold=200, window_seconds=3600)),
+    ],
 )
 def search_records(
     q: str = Query(..., min_length=3, description="Kadastr/hujjat raqami, STIR, PINFL yoki kalit so'z"),
@@ -99,7 +103,10 @@ def search_records(
 @router.get(
     "/records/{record_number}",
     response_model=PublicRecordOut,
-    dependencies=[Depends(rate_limiter(max_requests=60, window_seconds=60))],
+    dependencies=[
+        Depends(rate_limiter(max_requests=60, window_seconds=60)),
+        Depends(scrape_guard("public_record_detail", threshold=500, window_seconds=3600)),
+    ],
 )
 def get_public_record(record_number: str, db: Session = Depends(get_db)):
     record = (

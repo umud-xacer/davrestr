@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from app.api.deps import require_roles
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.net import get_client_ip
 from app.core.rbac import ADMIN_ROLES, Role
 from app.core.security import hash_password
 from app.models.application import Application
@@ -76,7 +77,7 @@ def create_registry_type(
 
     log_action(
         db, actor=user, action="registry_type.create", entity_type="registry_type",
-        entity_id=str(registry_type.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(registry_type.id), ip_address=get_client_ip(request),
     )
     return registry_type
 
@@ -100,7 +101,7 @@ def deactivate_registry_type(
 
     log_action(
         db, actor=user, action="registry_type.deactivate", entity_type="registry_type",
-        entity_id=str(registry_type.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(registry_type.id), ip_address=get_client_ip(request),
     )
     return registry_type
 
@@ -166,7 +167,7 @@ def create_user(
 
     log_action(
         db, actor=user, action="user.create", entity_type="user",
-        entity_id=str(new_user.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(new_user.id), ip_address=get_client_ip(request),
         details={"role": payload.role},
     )
     return new_user
@@ -200,7 +201,7 @@ def update_user(
 
     log_action(
         db, actor=admin, action="user.update", entity_type="user",
-        entity_id=str(target.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(target.id), ip_address=get_client_ip(request),
     )
     return target
 
@@ -258,7 +259,7 @@ def create_content(
 
     log_action(
         db, actor=user, action="content.create", entity_type="content_item",
-        entity_id=str(item.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(item.id), ip_address=get_client_ip(request),
         details={"type": payload.type},
     )
     return item
@@ -298,7 +299,7 @@ def update_content(
 
     log_action(
         db, actor=user, action="content.update", entity_type="content_item",
-        entity_id=str(item.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(item.id), ip_address=get_client_ip(request),
     )
     return item
 
@@ -319,7 +320,7 @@ def delete_content(
 
     log_action(
         db, actor=user, action="content.delete", entity_type="content_item",
-        entity_id=str(content_id), ip_address=request.client.host if request.client else None,
+        entity_id=str(content_id), ip_address=get_client_ip(request),
     )
 
 
@@ -385,7 +386,7 @@ def update_application_status(
 
     log_action(
         db, actor=user, action="application.status_change", entity_type="application",
-        entity_id=str(application.id), ip_address=request.client.host if request.client else None,
+        entity_id=str(application.id), ip_address=get_client_ip(request),
         details={"from": old_status, "to": payload.status},
     )
     return application
