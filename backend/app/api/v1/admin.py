@@ -22,8 +22,10 @@ from app.schemas.application import ApplicationOut, ApplicationStatusUpdate
 from app.schemas.audit import AuditLogOut
 from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate, ImageUploadOut
 from app.schemas.registry import RegistryTypeCreate, RegistryTypeOut
+from app.schemas.settings import SiteSettingsOut, SiteSettingsUpdate
 from app.schemas.user import OrganizationCreate, OrganizationOut, UserCreate, UserUpdate
 from app.schemas.auth import UserOut
+from app.services.settings_service import get_settings
 from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -219,6 +221,41 @@ def list_audit_logs(
     if entity_type:
         query = query.filter(AuditLog.entity_type == entity_type)
     return query.order_by(AuditLog.created_at.desc()).limit(min(limit, 500)).all()
+
+
+# ---------- Sayt sozlamalari (texnik ishlar ogohlantirishi) ----------
+
+@router.get("/settings", response_model=SiteSettingsOut)
+def get_site_settings(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    return get_settings(db)
+
+
+@router.put("/settings", response_model=SiteSettingsOut)
+def update_site_settings(
+    payload: SiteSettingsUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    settings = get_settings(db)
+    settings.maintenance_notice_enabled = payload.maintenance_notice_enabled
+    settings.maintenance_notice_hours = payload.maintenance_notice_hours
+    db.commit()
+    db.refresh(settings)
+
+    log_action(
+        db,
+        actor=user,
+        action="settings.update",
+        entity_type="site_settings",
+        entity_id=str(settings.id),
+        ip_address=get_client_ip(request),
+        details=payload.model_dump(),
+    )
+    return settings
 
 
 # ---------- Sayt kontenti (yangiliklar / xizmatlar / e'lonlar CMS) ----------

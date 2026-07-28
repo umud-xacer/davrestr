@@ -11,7 +11,7 @@ import {
   StarIcon,
   TelegramIcon,
 } from "../../components/icons";
-import { PublicContentItemOut, PublicRecordOut, RevealCodeOut } from "../../types";
+import { PublicContentItemOut, PublicRecordOut, RevealCodeOut, SiteSettingsOut } from "../../types";
 
 export function SearchPage() {
   const { lang, t } = useLanguage();
@@ -46,6 +46,8 @@ export function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<SiteSettingsOut | null>(null);
+  const [searched, setSearched] = useState(false);
 
   const [services, setServices] = useState<PublicContentItemOut[]>([]);
   const [news, setNews] = useState<PublicContentItemOut[]>([]);
@@ -59,6 +61,10 @@ export function SearchPage() {
     apiClient
       .get<PublicContentItemOut[]>("/public/content", { params: { type: "news" } })
       .then(({ data }) => setNews(data))
+      .catch(() => {});
+    apiClient
+      .get<SiteSettingsOut>("/public/notice")
+      .then(({ data }) => setNotice(data))
       .catch(() => {});
     fetchRevealCode();
   }, []);
@@ -98,6 +104,7 @@ export function SearchPage() {
     }
     setError(null);
     setLoading(true);
+    setSearched(true);
     try {
       const { data } = await apiClient.get<PublicRecordOut[]>("/public/search", {
         params: { q: query.trim(), captcha_token: reveal.token, captcha_answer: confirmAnswer.trim() },
@@ -225,6 +232,12 @@ export function SearchPage() {
           </form>
         </div>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+
+        {searched && notice?.maintenance_notice_enabled && (
+          <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm italic text-amber-800">
+            {t("record.maintenanceNotice").replace("{hours}", String(notice.maintenance_notice_hours))}
+          </p>
+        )}
 
         {results !== null && (
           <div className="mt-4">

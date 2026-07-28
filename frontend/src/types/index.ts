@@ -73,6 +73,11 @@ export interface RevealCodeOut {
   code: string;
 }
 
+export interface SiteSettingsOut {
+  maintenance_notice_enabled: boolean;
+  maintenance_notice_hours: number;
+}
+
 export type ContentType = "news" | "service" | "announcement";
 
 export interface PublicContentItemOut {

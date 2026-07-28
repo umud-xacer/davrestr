@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
-import { FieldDef, PublicRecordOut } from "../../types";
+import { FieldDef, PublicRecordOut, SiteSettingsOut } from "../../types";
 
 export function RecordDetailPage() {
   const { recordNumber } = useParams<{ recordNumber: string }>();
   const { lang, t } = useLanguage();
   const [record, setRecord] = useState<PublicRecordOut | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<SiteSettingsOut | null>(null);
 
   const STATUS_LABELS: Record<string, string> = {
     draft: t("status.draft"),
@@ -41,6 +42,10 @@ export function RecordDetailPage() {
       .get<PublicRecordOut>(`/public/records/${recordNumber}`)
       .then(({ data }) => setRecord(data))
       .catch(() => setError(t("record.notFound")));
+    apiClient
+      .get<SiteSettingsOut>("/public/notice")
+      .then(({ data }) => setNotice(data))
+      .catch(() => {});
   }, [recordNumber]);
 
   if (error) {
@@ -137,6 +142,12 @@ export function RecordDetailPage() {
           );
         })}
       </div>
+
+      {notice?.maintenance_notice_enabled && (
+        <p className="mt-4 rounded-lg bg-amber-50 p-3 text-center text-sm italic text-amber-800">
+          {t("record.maintenanceNotice").replace("{hours}", String(notice.maintenance_notice_hours))}
+        </p>
+      )}
 
       <p className="mt-4 text-center text-xs text-slate-400">
         {t("record.verifyCode")}: {record.verify_code} — {t("record.verifyHint")}{" "}

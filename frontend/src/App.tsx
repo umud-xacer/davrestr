@@ -17,6 +17,7 @@ import { UsersPage } from "./pages/admin/UsersPage";
 import { AuditLogPage } from "./pages/admin/AuditLogPage";
 import { ContentPage } from "./pages/admin/ContentPage";
 import { ApplicationsPage } from "./pages/admin/ApplicationsPage";
+import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
 const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
@@ -104,6 +105,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
               <ApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
+              <AdminSettingsPage />
             </ProtectedRoute>
           }
         />

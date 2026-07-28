@@ -9,6 +9,7 @@ export function AdminDashboardPage() {
     { to: "/admin/users", title: t("adminDashboard.card3Title"), desc: t("adminDashboard.card3Desc") },
     { to: "/admin/audit-logs", title: t("adminDashboard.card4Title"), desc: t("adminDashboard.card4Desc") },
     { to: "/admin/applications", title: t("adminDashboard.card5Title"), desc: t("adminDashboard.card5Desc") },
+    { to: "/admin/settings", title: t("adminDashboard.card6Title"), desc: t("adminDashboard.card6Desc") },
   ];
 
   return (

@@ -4,6 +4,7 @@ from app.models.registry import RegistryType, RegistryRecord, RegistryStatus
 from app.models.audit import AuditLog
 from app.models.content import ContentItem, ContentType
 from app.models.application import Application, ApplicationStatus
+from app.models.settings import SiteSettings
 
 __all__ = [
     "Organization",
@@ -16,4 +17,5 @@ __all__ = [
     "ContentType",
     "Application",
     "ApplicationStatus",
+    "SiteSettings",
 ]

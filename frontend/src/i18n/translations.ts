@@ -83,6 +83,8 @@ export const translations = {
       loading: "Yuklanmoqda...",
       notice:
         "Agar siz ushbu obyekt mulkdori bo'lsangiz, rasmiy ma'lumotnoma (elektron raqamli imzo bilan tasdiqlangan) olish uchun shaxsiy kabinet orqali buyurtma berishingiz mumkin.",
+      maintenanceNotice:
+        "Davlat Reyestri serverida texnik ishlar olib borilayotgan vaqtda rasmiy ma'lumotnomalarni taqdim etish {hours} soatgacha cho'zilishi mumkin.",
       restrictionsFor: "Obyektga nisbatan",
       exists: "Mavjud",
       notExists: "Mavjud emas",
@@ -157,6 +159,21 @@ export const translations = {
       card4Desc: "Tizimdagi barcha muhim amallar tarixi",
       card5Title: "Arizalar",
       card5Desc: "Fuqarolar arizalarini ko'rib chiqish, to'lov va tasdiqlash holatlarini boshqarish",
+      card6Title: "Sayt sozlamalari",
+      card6Desc: "Qidiruv/yozuv sahifasidagi texnik ishlar ogohlantirishini yoqish/o'chirish",
+    },
+    settings: {
+      title: "Sayt sozlamalari",
+      desc: "Bu yerdagi o'zgarishlar darhol ochiq portalda (qidiruv va yozuv sahifalarida) ko'rinadi.",
+      noticeToggle: "Texnik ishlar ogohlantirishini ko'rsatish",
+      noticeToggleHint:
+        "Yoqilganda qidiruv va yozuv sahifalarida rasmiy ma'lumotnomani taqdim etish kechikishi haqida ogohlantirish ko'rsatiladi.",
+      hoursLabel: "Kechikish (soat)",
+      preview: "Ko'rinishi:",
+      save: "Saqlash",
+      saving: "Saqlanmoqda...",
+      saved: "Saqlandi",
+      submitError: "Saqlashda xatolik yuz berdi",
     },
     registryBuilder: {
       title: "Reestr strukturasi konstruktori",
@@ -362,6 +379,8 @@ export const translations = {
       loading: "Загрузка...",
       notice:
         "Если вы являетесь владельцем этого объекта, вы можете заказать официальную справку (заверенную электронной цифровой подписью) через личный кабинет.",
+      maintenanceNotice:
+        "В связи с техническими работами на сервере Государственного реестра предоставление официальных справок может занять до {hours} часов.",
       restrictionsFor: "В отношении объекта",
       exists: "Имеется",
       notExists: "Отсутствует",
@@ -436,6 +455,21 @@ export const translations = {
       card4Desc: "История всех важных действий в системе",
       card5Title: "Заявки",
       card5Desc: "Рассмотрение заявок граждан, управление статусами оплаты и утверждения",
+      card6Title: "Настройки сайта",
+      card6Desc: "Включение/выключение уведомления о технических работах на странице поиска",
+    },
+    settings: {
+      title: "Настройки сайта",
+      desc: "Изменения здесь сразу отображаются на публичном портале (страницы поиска и записи).",
+      noticeToggle: "Показывать уведомление о технических работах",
+      noticeToggleHint:
+        "При включении на страницах поиска и записи показывается уведомление о задержке выдачи официальной справки.",
+      hoursLabel: "Задержка (часов)",
+      preview: "Предпросмотр:",
+      save: "Сохранить",
+      saving: "Сохранение...",
+      saved: "Сохранено",
+      submitError: "Ошибка при сохранении",
     },
     registryBuilder: {
       title: "Конструктор структуры реестра",

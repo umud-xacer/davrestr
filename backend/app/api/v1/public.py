@@ -13,8 +13,10 @@ from app.models.registry import RegistryRecord, RegistryType
 from app.schemas.application import ApplicationCreate, ApplicationOut
 from app.schemas.content import PublicContentItemOut
 from app.schemas.registry import CaptchaOut, FieldDef, PublicRecordOut, RevealCodeOut
+from app.schemas.settings import SiteSettingsOut
 from app.services.captcha_service import generate_captcha, generate_reveal_code, verify_captcha
 from app.services.record_service import extract_public_data
+from app.services.settings_service import get_settings
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -42,6 +44,12 @@ def _to_public_record_out(record: RegistryRecord) -> PublicRecordOut:
 @router.get("/captcha", response_model=CaptchaOut)
 def get_captcha():
     return generate_captcha()
+
+
+@router.get("/notice", response_model=SiteSettingsOut)
+def get_public_notice(db: Session = Depends(get_db)):
+    """Qidiruv/yozuv sahifasida ko'rsatiladigan "texnik ishlar" ogohlantirishi — admin panelda yoqiladi/o'chiriladi."""
+    return get_settings(db)
 
 
 @router.get(
