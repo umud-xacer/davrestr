@@ -9,12 +9,15 @@ from app.core.database import get_db
 from app.core.rate_limit import rate_limiter
 from app.models.application import Application
 from app.models.content import ContentItem
+from app.models.document import Document
 from app.models.registry import RegistryRecord, RegistryType
 from app.schemas.application import ApplicationCreate, ApplicationOut
 from app.schemas.content import PublicContentItemOut
+from app.schemas.document import DocumentOut
 from app.schemas.registry import CaptchaOut, FieldDef, PublicRecordOut, RevealCodeOut
 from app.schemas.settings import SiteSettingsOut
 from app.services.captcha_service import generate_captcha, generate_reveal_code, verify_captcha
+from app.services.document_service import to_document_out
 from app.services.record_service import extract_public_data
 from app.services.settings_service import get_settings
 
@@ -50,6 +53,19 @@ def get_captcha():
 def get_public_notice(db: Session = Depends(get_db)):
     """Qidiruv/yozuv sahifasida ko'rsatiladigan "texnik ishlar" ogohlantirishi — admin panelda yoqiladi/o'chiriladi."""
     return get_settings(db)
+
+
+@router.get(
+    "/documents/{document_id}",
+    response_model=DocumentOut,
+    dependencies=[Depends(rate_limiter(max_requests=60, window_seconds=60))],
+)
+def get_public_document(document_id: uuid.UUID, db: Session = Depends(get_db)):
+    """QR kod skanerlaganda ochiladigan /documents/{id} sahifasi shu orqali PDF manzilini oladi."""
+    document = db.get(Document, document_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Hujjat topilmadi")
+    return to_document_out(document)
 
 
 @router.get(

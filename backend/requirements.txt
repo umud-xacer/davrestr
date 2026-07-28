@@ -13,4 +13,5 @@ redis==5.0.4
 elasticsearch==8.14.0
 qrcode[pil]==7.4.2
 reportlab==4.2.0
+pypdf==4.2.0
 python-dotenv==1.0.1

@@ -5,6 +5,7 @@ from app.models.audit import AuditLog
 from app.models.content import ContentItem, ContentType
 from app.models.application import Application, ApplicationStatus
 from app.models.settings import SiteSettings
+from app.models.document import Document
 
 __all__ = [
     "Organization",
@@ -18,4 +19,5 @@ __all__ = [
     "Application",
     "ApplicationStatus",
     "SiteSettings",
+    "Document",
 ]

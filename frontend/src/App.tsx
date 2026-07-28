@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SearchPage } from "./pages/public/SearchPage";
 import { RecordDetailPage } from "./pages/public/RecordDetailPage";
 import { ApplyPage } from "./pages/public/ApplyPage";
+import { DocumentViewPage } from "./pages/public/DocumentViewPage";
 
 import { LoginPage } from "./pages/cabinet/LoginPage";
 import { CabinetDashboardPage } from "./pages/cabinet/CabinetDashboardPage";
@@ -20,6 +21,7 @@ import { AuditLogPage } from "./pages/admin/AuditLogPage";
 import { ContentPage } from "./pages/admin/ContentPage";
 import { ApplicationsPage } from "./pages/admin/ApplicationsPage";
 import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
+import { DocumentsPage } from "./pages/admin/DocumentsPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
@@ -34,6 +36,7 @@ export default function App() {
         <Route path="/" element={<SearchPage />} />
         <Route path="/record/:recordNumber" element={<RecordDetailPage />} />
         <Route path="/apply" element={<ApplyPage />} />
+        <Route path="/documents/:id" element={<DocumentViewPage />} />
 
         {/* Cabinet Module */}
         <Route path="/cabinet/login" element={<LoginPage />} />
@@ -89,6 +92,7 @@ export default function App() {
           <Route path="audit-logs" element={<AuditLogPage />} />
           <Route path="content" element={<ContentPage />} />
           <Route path="applications" element={<ApplicationsPage />} />
+          <Route path="documents" element={<DocumentsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>

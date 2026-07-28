@@ -16,16 +16,20 @@ from app.core.security import hash_password
 from app.models.application import Application
 from app.models.audit import AuditLog
 from app.models.content import ContentItem
+from app.models.document import Document
 from app.models.organization import Organization
 from app.models.registry import RegistryRecord, RegistryType
 from app.models.user import User
 from app.schemas.application import ApplicationOut, ApplicationStatusUpdate
 from app.schemas.audit import AuditLogOut
 from app.schemas.content import ContentItemCreate, ContentItemOut, ContentItemUpdate, ImageUploadOut
+from app.schemas.document import DocumentOut
 from app.schemas.registry import RegistryRecordOut, RegistryRecordUpdate, RegistryTypeCreate, RegistryTypeOut
 from app.schemas.settings import SiteSettingsOut, SiteSettingsUpdate
 from app.schemas.user import OrganizationCreate, OrganizationOut, UserCreate, UserUpdate
 from app.schemas.auth import UserOut
+from app.services.document_service import to_document_out
+from app.services.pdf_stamp_service import stamp_pdf_with_qr
 from app.services.record_service import compute_signature_hash
 from app.services.settings_service import get_settings
 from app.services.audit_service import log_action
@@ -34,6 +38,8 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+MAX_PDF_SIZE_BYTES = 20 * 1024 * 1024
+DOCUMENTS_SUBDIR = "documents"
 
 
 def _scope_org_id(current: User, requested: uuid.UUID | None) -> uuid.UUID:
@@ -472,6 +478,88 @@ async def upload_content_image(
         f.write(contents)
 
     return ImageUploadOut(url=f"{settings.API_V1_PREFIX}/uploads/{filename}")
+
+
+# ---------- Hujjatlar (PDF yuklash + avtomatik QR tamg'a) ----------
+# 1-usul (avtomatik): admin oddiy PDF (QR kodsiz) yuklaydi, tizim /documents/{id}
+# sahifasiga yo'naltiruvchi QR kodni PDF'ning 1-sahifasiga o'zi chizib qo'shadi.
+
+@router.post("/documents", response_model=DocumentOut, status_code=201)
+async def upload_document(
+    request: Request,
+    title: str = File(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext != ".pdf" or file.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Faqat PDF fayl qabul qilinadi")
+
+    contents = await file.read()
+    if len(contents) > MAX_PDF_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="Fayl hajmi 20 MB dan oshmasligi kerak")
+
+    document_id = uuid.uuid4()
+    qr_url = f"{settings.PUBLIC_SITE_BASE_URL}/documents/{document_id}"
+    try:
+        stamped_bytes = stamp_pdf_with_qr(contents, qr_url)
+    except Exception:
+        raise HTTPException(status_code=400, detail="PDF faylni o'qib bo'lmadi — fayl buzilgan yoki noto'g'ri formatda")
+
+    stored_filename = f"{document_id}.pdf"
+    documents_dir = os.path.join(settings.UPLOAD_DIR, DOCUMENTS_SUBDIR)
+    os.makedirs(documents_dir, exist_ok=True)
+    with open(os.path.join(documents_dir, stored_filename), "wb") as f:
+        f.write(stamped_bytes)
+
+    document = Document(
+        id=document_id,
+        title=title,
+        original_filename=file.filename or stored_filename,
+        stored_filename=stored_filename,
+        uploaded_by_id=user.id,
+    )
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    log_action(
+        db, actor=user, action="document.upload", entity_type="document",
+        entity_id=str(document.id), ip_address=get_client_ip(request),
+        details={"title": title, "original_filename": document.original_filename},
+    )
+    return to_document_out(document)
+
+
+@router.get("/documents", response_model=list[DocumentOut])
+def list_documents(db: Session = Depends(get_db), user: User = Depends(require_roles(*ADMIN_ROLES))):
+    documents = db.query(Document).order_by(Document.created_at.desc()).all()
+    return [to_document_out(d) for d in documents]
+
+
+@router.delete("/documents/{document_id}", status_code=204)
+def delete_document(
+    document_id: uuid.UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*ADMIN_ROLES)),
+):
+    document = db.get(Document, document_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Hujjat topilmadi")
+
+    filepath = os.path.join(settings.UPLOAD_DIR, DOCUMENTS_SUBDIR, document.stored_filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    db.delete(document)
+    db.commit()
+
+    log_action(
+        db, actor=user, action="document.delete", entity_type="document",
+        entity_id=str(document_id), ip_address=get_client_ip(request),
+    )
 
 
 # ---------- Arizalar (fuqarolar tomonidan yuborilgan elektron xizmat arizalari) ----------

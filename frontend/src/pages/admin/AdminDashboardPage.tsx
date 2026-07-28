@@ -6,6 +6,7 @@ export function AdminDashboardPage() {
   const CARDS = [
     { to: "/admin/registry-types", title: t("adminDashboard.card1Title"), desc: t("adminDashboard.card1Desc") },
     { to: "/admin/records", title: t("adminNav.recordEdit"), desc: t("adminRecordEdit.desc") },
+    { to: "/admin/documents", title: t("adminNav.documents"), desc: t("documents.desc") },
     { to: "/admin/content", title: t("adminDashboard.card2Title"), desc: t("adminDashboard.card2Desc") },
     { to: "/admin/users", title: t("adminDashboard.card3Title"), desc: t("adminDashboard.card3Desc") },
     { to: "/admin/audit-logs", title: t("adminDashboard.card4Title"), desc: t("adminDashboard.card4Desc") },

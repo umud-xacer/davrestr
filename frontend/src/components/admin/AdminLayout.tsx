@@ -5,6 +5,7 @@ const NAV_ITEMS: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "adminNav.dashboard", end: true },
   { to: "/admin/registry-types", label: "adminNav.registryTypes" },
   { to: "/admin/records", label: "adminNav.recordEdit" },
+  { to: "/admin/documents", label: "adminNav.documents" },
   { to: "/admin/content", label: "adminNav.content" },
   { to: "/admin/users", label: "adminNav.users" },
   { to: "/admin/applications", label: "adminNav.applications" },

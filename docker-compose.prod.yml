@@ -29,6 +29,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       BACKEND_CORS_ORIGINS: '["https://${DOMAIN}", "https://www.${DOMAIN}"]'
       QR_VERIFY_BASE_URL: https://${DOMAIN}/api/v1/public/verify
+      PUBLIC_SITE_BASE_URL: https://${DOMAIN}
       ENVIRONMENT: production
     volumes:
       - backend_uploads:/app/uploads

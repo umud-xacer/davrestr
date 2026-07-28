@@ -78,6 +78,15 @@ export interface SiteSettingsOut {
   maintenance_notice_hours: number;
 }
 
+export interface DocumentOut {
+  id: string;
+  title: string;
+  original_filename: string;
+  file_url: string;
+  page_url: string;
+  created_at: string;
+}
+
 export type ContentType = "news" | "service" | "announcement";
 
 export interface PublicContentItemOut {

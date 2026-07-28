@@ -27,6 +27,10 @@ class Settings(BaseSettings):
 
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173"]
     QR_VERIFY_BASE_URL: str = "http://localhost:8000/api/v1/public/verify"
+    # Yuklangan hujjat (PDF) sahifasiga havola shakllantirish uchun — frontend saytining
+    # o'zi (API emas), masalan https://davrestr.uz. Hujjat ichiga bosiladigan QR kod shu
+    # bazaga nisbatan /documents/{id} havolasini ko'rsatadi.
+    PUBLIC_SITE_BASE_URL: str = "http://localhost:5173"
 
     PROJECT_NAME: str = "Davreestr Portal API"
     API_V1_PREFIX: str = "/api/v1"
