@@ -6,9 +6,9 @@ from app.core.account_lockout import clear_failed_logins, is_account_locked, reg
 from app.core.database import get_db
 from app.core.net import get_client_ip
 from app.core.rate_limit import rate_limiter
-from app.core.security import create_access_token, create_refresh_token, decode_token, verify_password
+from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
 from app.models.user import User
-from app.schemas.auth import LoginRequest, TokenResponse, UserOut
+from app.schemas.auth import ChangePasswordRequest, LoginRequest, TokenResponse, UserOut
 from app.services.audit_service import log_action, log_security_alert
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -90,3 +90,35 @@ def refresh(refresh_token: str, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post(
+    "/change-password",
+    dependencies=[Depends(rate_limiter(max_requests=5, window_seconds=60))],
+)
+def change_password(
+    payload: ChangePasswordRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Joriy parol noto'g'ri")
+    if len(payload.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Yangi parol kamida 8 belgidan iborat bo'lishi kerak",
+        )
+
+    current_user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+
+    log_action(
+        db,
+        actor=current_user,
+        action="auth.change_password",
+        entity_type="user",
+        entity_id=str(current_user.id),
+        ip_address=get_client_ip(request),
+    )
+    return {"detail": "Parol muvaffaqiyatli almashtirildi"}

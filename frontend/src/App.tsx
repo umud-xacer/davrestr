@@ -11,6 +11,7 @@ import { LoginPage } from "./pages/cabinet/LoginPage";
 import { CabinetDashboardPage } from "./pages/cabinet/CabinetDashboardPage";
 import { RecordFormPage } from "./pages/cabinet/RecordFormPage";
 
+import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { RegistryBuilderPage } from "./pages/admin/RegistryBuilderPage";
 import { UsersPage } from "./pages/admin/UsersPage";
@@ -18,6 +19,7 @@ import { AuditLogPage } from "./pages/admin/AuditLogPage";
 import { ContentPage } from "./pages/admin/ContentPage";
 import { ApplicationsPage } from "./pages/admin/ApplicationsPage";
 import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
+import { ChangePasswordPage } from "./pages/admin/ChangePasswordPage";
 
 const STAFF_ROLES = ["cabinet_employee", "cabinet_approver", "org_admin", "superadmin"] as const;
 const ADMIN_ROLES = ["org_admin", "superadmin"] as const;
@@ -59,63 +61,25 @@ export default function App() {
           }
         />
 
-        {/* Admin Panel (SuperAdmin System) */}
+        {/* Admin Panel (SuperAdmin System) — chap tarafdagi navbar (AdminLayout) barcha
+            bo'limlarni birlashtiradi, har bir sahifa shu Outlet ichida ochiladi */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <AdminDashboardPage />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/admin/registry-types"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <RegistryBuilderPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/audit-logs"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <AuditLogPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/content"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <ContentPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/applications"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <ApplicationsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <ProtectedRoute allowedRoles={[...ADMIN_ROLES]}>
-              <AdminSettingsPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="registry-types" element={<RegistryBuilderPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="audit-logs" element={<AuditLogPage />} />
+          <Route path="content" element={<ContentPage />} />
+          <Route path="applications" element={<ApplicationsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
+        </Route>
       </Routes>
       <Footer />
     </div>
